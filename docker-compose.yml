@@ -1,0 +1,55 @@
+services:
+  data:
+    build:
+      context: .
+      dockerfile: ./services/data/Dockerfile
+    container_name: pro-rp-data
+    # Internal-only: clients must go through the access policy service.
+    environment:
+      PRO_RP_DB_PATH: /data/pro_rp.sqlite3
+    volumes:
+      - pro-rp-data:/data
+
+  access:
+    build:
+      context: .
+      dockerfile: ./services/access/Dockerfile
+    container_name: pro-rp-access
+    environment:
+      DATA_SERVICE_URL: http://data:8000
+      # PoC only; remove in production and authenticate via a trusted IdP.
+      DEFAULT_PERSON_ID: demo-U-PRM
+    ports:
+      - "8002:8000"
+    depends_on:
+      - data
+
+  simulation:
+    build:
+      context: .
+      dockerfile: ./services/simulation/Dockerfile
+    container_name: pro-rp-simulation
+    environment:
+      ACCESS_SERVICE_URL: http://access:8000
+    ports:
+      - "8001:8000"
+    depends_on:
+      - access
+
+  presentation:
+    build:
+      context: .
+      dockerfile: ./services/presentation/Dockerfile
+    environment:
+      ACCESS_SERVICE_URL: http://access:8000
+      DATA_SERVICE_URL: http://data:8000
+      SIMULATION_SERVICE_URL: http://simulation:8000
+    ports:
+      - "8000:8000"
+      - "8501:8501"
+    depends_on:
+      - access
+      - simulation
+
+volumes:
+  pro-rp-data:

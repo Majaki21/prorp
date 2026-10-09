@@ -1,0 +1,289 @@
+[
+  {
+    "id": "U-PRM",
+    "nazwa": "Prezes Rady Ministrów / Rada Ministrów — węzeł koordynacyjny PoC",
+    "id_jednostki_nadrzednej": null,
+    "id_planow": [],
+    "budzet": 0,
+    "zasoby": {},
+    "id_regionu": null,
+    "typ": "wezel_koordynacyjny_poc"
+  },
+  {
+    "id": "U-KPRM",
+    "nazwa": "Kancelaria Prezesa Rady Ministrów",
+    "id_jednostki_nadrzednej": "U-PRM",
+    "id_planow": [
+      "O"
+    ],
+    "budzet": 12000000,
+    "zasoby": {
+      "personel": 120,
+      "pojazdy": 8
+    },
+    "id_regionu": null,
+    "typ": "administracja centralna"
+  },
+  {
+    "id": "U-MSWIA",
+    "nazwa": "Ministerstwo Spraw Wewnętrznych i Administracji",
+    "id_jednostki_nadrzednej": "U-PRM",
+    "id_planow": [
+      "OR",
+      "P"
+    ],
+    "budzet": 8000000,
+    "zasoby": {
+      "personel": 90,
+      "pojazdy": 12
+    },
+    "id_regionu": null,
+    "typ": "ministerstwo"
+  },
+  {
+    "id": "U-RCB",
+    "nazwa": "Rządowe Centrum Bezpieczeństwa",
+    "id_jednostki_nadrzednej": "U-PRM",
+    "id_planow": [
+      "OW"
+    ],
+    "budzet": 18000000,
+    "zasoby": {
+      "personel": 180,
+      "stanowiska_dyzurne": 3
+    },
+    "id_regionu": null,
+    "typ": "centrum rządowe"
+  },
+  {
+    "id": "U-MUW-MZ",
+    "nazwa": "Mazowiecki Urząd Wojewódzki",
+    "id_jednostki_nadrzednej": "U-PRM",
+    "id_planow": [
+      "OK"
+    ],
+    "budzet": 2500000,
+    "zasoby": {
+      "personel": 240,
+      "pojazdy": 18
+    },
+    "id_regionu": "PL-MZ",
+    "typ": "administracja rządowa terenowa"
+  },
+  {
+    "id": "U-KGP",
+    "nazwa": "Komenda Główna Policji",
+    "id_jednostki_nadrzednej": "U-MSWIA",
+    "id_planow": [
+      "ORP",
+      "PP"
+    ],
+    "budzet": 25000000,
+    "zasoby": {
+      "personel": 800,
+      "pojazdy": 100
+    },
+    "id_regionu": null,
+    "typ": "sluzby mundurowe"
+  },
+  {
+    "id": "U-KGPSP",
+    "nazwa": "Komenda Główna Państwowej Straży Pożarnej",
+    "id_jednostki_nadrzednej": "U-MSWIA",
+    "id_planow": [
+      "ORS",
+      "PS"
+    ],
+    "budzet": 22000000,
+    "zasoby": {
+      "personel": 500,
+      "pojazdy": 80
+    },
+    "id_regionu": null,
+    "typ": "sluzby mundurowe"
+  },
+  {
+    "id": "U-KWP-MZ",
+    "nazwa": "Komenda Stołeczna Policji",
+    "id_jednostki_nadrzednej": "U-KGP",
+    "id_planow": [
+      "ORPP",
+      "PPP"
+    ],
+    "budzet": 9000000,
+    "zasoby": {
+      "personel": 6500,
+      "pojazdy": 500
+    },
+    "id_regionu": "PL-MZ",
+    "typ": "policja"
+  },
+  {
+    "id": "U-KWPSP-MZ",
+    "nazwa": "Komenda Wojewódzka Państwowej Straży Pożarnej w Warszawie",
+    "id_jednostki_nadrzednej": "U-KGPSP",
+    "id_planow": [
+      "ORSS",
+      "PSS"
+    ],
+    "budzet": 6000000,
+    "zasoby": {
+      "personel": 1200,
+      "pojazdy": 160
+    },
+    "id_regionu": "PL-MZ",
+    "typ": "psp"
+  },
+  {
+    "id": "U-KPP-RAD",
+    "nazwa": "Komenda Miejska Policji w Radomiu",
+    "id_jednostki_nadrzednej": "U-KWP-MZ",
+    "id_planow": [
+      "ORPPP",
+      "PPPP"
+    ],
+    "budzet": 1800000,
+    "zasoby": {
+      "personel": 600,
+      "pojazdy": 80
+    },
+    "id_regionu": "PL-MZ",
+    "typ": "policja"
+  },
+  {
+    "id": "U-KPPSP-RAD",
+    "nazwa": "Komenda Miejska Państwowej Straży Pożarnej w Radomiu",
+    "id_jednostki_nadrzednej": "U-KWPSP-MZ",
+    "id_planow": [
+      "ORSSS",
+      "PSSS"
+    ],
+    "budzet": 1400000,
+    "zasoby": {
+      "personel": 250,
+      "pojazdy": 35
+    },
+    "id_regionu": "PL-MZ",
+    "typ": "psp"
+  },
+  {
+    "id": "U-MZ",
+    "nazwa": "Ministerstwo Zdrowia",
+    "id_jednostki_nadrzednej": "U-PRM",
+    "id_planow": [
+      "R"
+    ],
+    "budzet": 9000000,
+    "zasoby": {
+      "personel": 100,
+      "pojazdy": 10
+    },
+    "id_regionu": null,
+    "typ": "ministerstwo"
+  },
+  {
+    "id": "U-NFZ",
+    "nazwa": "Narodowy Fundusz Zdrowia",
+    "id_jednostki_nadrzednej": "U-MZ",
+    "id_planow": [
+      "RN"
+    ],
+    "budzet": 5000000,
+    "zasoby": {
+      "personel": 200,
+      "placowki": 16
+    },
+    "id_regionu": null,
+    "typ": "instytucja publiczna"
+  },
+  {
+    "id": "U-PRM",
+    "nazwa": "Lotnicze Pogotowie Ratunkowe",
+    "id_jednostki_nadrzednej": "U-MZ",
+    "id_planow": [
+      "RL"
+    ],
+    "budzet": 4000000,
+    "zasoby": {
+      "personel": 80,
+      "smiglowce": 22
+    },
+    "id_regionu": null,
+    "typ": "ratownictwo medyczne"
+  },
+  {
+    "id": "U-MI",
+    "nazwa": "Ministerstwo Infrastruktury",
+    "id_jednostki_nadrzednej": "U-PRM",
+    "id_planow": [
+      "S"
+    ],
+    "budzet": 7000000,
+    "zasoby": {
+      "personel": 100,
+      "pojazdy": 10
+    },
+    "id_regionu": null,
+    "typ": "ministerstwo"
+  },
+  {
+    "id": "U-GDDKIA",
+    "nazwa": "Generalna Dyrekcja Dróg Krajowych i Autostrad",
+    "id_jednostki_nadrzednej": "U-MI",
+    "id_planow": [
+      "SD"
+    ],
+    "budzet": 6000000,
+    "zasoby": {
+      "personel": 300,
+      "pojazdy": 40
+    },
+    "id_regionu": null,
+    "typ": "administracja centralna"
+  },
+  {
+    "id": "U-PLK",
+    "nazwa": "PKP Polskie Linie Kolejowe S.A.",
+    "id_jednostki_nadrzednej": "U-MI",
+    "id_planow": [
+      "SK"
+    ],
+    "budzet": 10000000,
+    "zasoby": {
+      "personel": 500,
+      "pojazdy": 50
+    },
+    "id_regionu": null,
+    "typ": "operator infrastruktury"
+  },
+  {
+    "id": "U-MARSZ-MZ",
+    "nazwa": "Urząd Marszałkowski Województwa Mazowieckiego",
+    "id_jednostki_nadrzednej": null,
+    "id_planow": [
+      "T"
+    ],
+    "budzet": 3500000,
+    "zasoby": {
+      "personel": 300,
+      "pojazdy": 20
+    },
+    "id_regionu": "PL-MZ",
+    "typ": "samorząd województwa"
+  },
+  {
+    "id": "U-ZDW-MZ",
+    "nazwa": "Mazowiecki Zarząd Dróg Wojewódzkich",
+    "id_jednostki_nadrzednej": "U-MARSZ-MZ",
+    "id_planow": [
+      "TD"
+    ],
+    "budzet": 2000000,
+    "zasoby": {
+      "personel": 150,
+      "pojazdy": 30
+    },
+    "id_regionu": "PL-MZ",
+    "typ": "samorządowa jednostka organizacyjna"
+  }
+]
