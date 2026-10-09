@@ -794,6 +794,69 @@ async def create_task_for_own_plan(
     return await data_mutate("POST", f"/plans/{plan_id}/tasks", payload)
 
 
+@app.get("/tasks/{plan_id}/{task_id}/reports")
+async def get_task_reports(
+    plan_id: str,
+    task_id: str,
+    x_person_id: str | None = Header(default=None, alias="X-Person-Id"),
+):
+    person = await resolve_person(x_person_id)
+    visible_units, visible_plan_ids, units, plans = await access_context(person)
+    if plan_id not in visible_plan_ids:
+        raise not_found()
+    plan_by_id = {str(p["id_planu"]): p for p in plans}
+    tasks = await data_get("/tasks", {"plan_id": plan_id, "limit": 5000})
+    task = next((t for t in tasks if str(t.get("id_zadania")) == task_id), None)
+    if task is None or not task_is_readable(person, task, plan_by_id, visible_units, visible_plan_ids):
+        raise not_found()
+    return await data_get(f"/tasks/{plan_id}/{task_id}/reports")
+
+
+@app.post("/tasks/{plan_id}/{task_id}/reports", status_code=201)
+async def create_task_report(
+    plan_id: str,
+    task_id: str,
+    payload: dict[str, Any],
+    x_person_id: str | None = Header(default=None, alias="X-Person-Id"),
+):
+    person = await resolve_person(x_person_id)
+    visible_units, visible_plan_ids, units, plans = await access_context(person)
+    if plan_id not in visible_plan_ids:
+        raise not_found()
+    plan_by_id = {str(p["id_planu"]): p for p in plans}
+    tasks = await data_get("/tasks", {"plan_id": plan_id, "limit": 5000})
+    task = next((t for t in tasks if str(t.get("id_zadania")) == task_id), None)
+    if task is None or not task_is_readable(person, task, plan_by_id, visible_units, visible_plan_ids):
+        raise not_found()
+    assigned = {str(uid) for uid in task.get("id_jednostek", [])}
+    if not assigned:
+        owner_id = next((str(u["id"]) for u in units if plan_id in {str(x) for x in u.get("id_planow", [])}), "")
+        assigned = {owner_id} if owner_id else set()
+    own_unit_id = str(person["id_jednostki"])
+    if assigned != {own_unit_id}:
+        raise HTTPException(403, "A unit may report only on tasks assigned exclusively to that unit")
+    task_type = task.get("typ_zadania", "REAL")
+    plan = plan_by_id.get(plan_id, {})
+    if task_type == "REAL" and plan.get("status_operacyjny", "prepared") != "active":
+        raise HTTPException(409, "The plan must be active before REAL tasks can be reported")
+    if task_type == "PRZ" and plan.get("status_planu") != "approved":
+        raise HTTPException(409, "Preparatory tasks may be reported only after the plan is approved")
+    if task_type not in ("REAL", "PRZ"):
+        raise HTTPException(409, "Unsupported task type")
+    # Identity and organizational scope are derived from Access, never trusted from the UI payload.
+    safe_payload = {
+        "author_id": str(person["id_osoby"]),
+        "author_name": f"{person.get('imie', '')} {person.get('nazwisko', '')}".strip() or str(person["id_osoby"]),
+        "unit_id": own_unit_id,
+        "poziom_realizacji": payload.get("poziom_realizacji"),
+        "wykonane_czynnosci": payload.get("wykonane_czynnosci", ""),
+        "przeszkody": payload.get("przeszkody", ""),
+        "potrzeby": payload.get("potrzeby", ""),
+        "przewidywany_termin": payload.get("przewidywany_termin"),
+    }
+    return await data_mutate("POST", f"/tasks/{plan_id}/{task_id}/reports", safe_payload)
+
+
 @app.patch("/tasks/{plan_id}/{task_id}/progress")
 async def update_owned_task_progress(
     plan_id: str,

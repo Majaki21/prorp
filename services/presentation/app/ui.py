@@ -281,6 +281,70 @@ def main():
                     elif task.get("typ_zadania")=="REAL" and p.get("status_operacyjny")!="active": st.info("Zadanie REAL jest zaplanowane. Raportowanie postępu będzie dostępne po aktywacji planu.")
                     elif task.get("typ_zadania")=="PRZ" and p.get("status_planu")!="approved": st.info("Zadanie przygotowawcze można raportować po zatwierdzeniu planu.")
                     else: st.caption("Podgląd zadania. Edycja jest dostępna wyłącznie dla własnych zadań REAL w aktywnym planie.")
+
+                    # Actual execution reporting: immutable report history + atomic progress update.
+                    can_report = (
+                        str(owner_by_plan.get(str(task.get("id_planu")), "")) == own_unit_id
+                        and ((task.get("typ_zadania") == "REAL" and p.get("status_operacyjny") == "active")
+                             or (task.get("typ_zadania") == "PRZ" and p.get("status_planu") == "approved"))
+                    )
+                    if can_report:
+                        with st.expander("Złóż raport rzeczywistego wykonania", expanded=False):
+                            with st.form(f"task-report-form-{task.get('id_planu')}-{task.get('id_zadania')}"):
+                                report_progress = st.slider(
+                                    "Stopień realizacji po raporcie", 0, 100,
+                                    int(clamp_progress(task) * 100),
+                                    key=f"report-progress-{task.get('id_planu')}-{task.get('id_zadania')}"
+                                )
+                                report_summary = st.text_area(
+                                    "Wykonane czynności i uzyskane rezultaty *",
+                                    placeholder="Opisz, co wykonano i jaki jest rezultat…", max_chars=5000
+                                )
+                                report_blockers = st.text_area(
+                                    "Przeszkody / ryzyka", placeholder="Opcjonalnie", max_chars=3000
+                                )
+                                report_needs = st.text_area(
+                                    "Potrzebne wsparcie / zasoby", placeholder="Opcjonalnie", max_chars=3000
+                                )
+                                report_eta = st.text_input(
+                                    "Przewidywany termin zakończenia (RRRR-MM-DD)",
+                                    placeholder="2026-10-20", max_chars=32
+                                )
+                                report_submitted = st.form_submit_button("Zapisz raport i zaktualizuj postęp", type="primary")
+                            if report_submitted:
+                                if len(report_summary.strip()) < 3:
+                                    st.error("Opisz wykonane czynności (co najmniej 3 znaki).")
+                                else:
+                                    try:
+                                        post(f"/api/tasks/{task.get('id_planu')}/{task.get('id_zadania')}/reports", person_id, {
+                                            "poziom_realizacji": report_progress / 100,
+                                            "wykonane_czynnosci": report_summary.strip(),
+                                            "przeszkody": report_blockers.strip(),
+                                            "potrzeby": report_needs.strip(),
+                                            "przewidywany_termin": report_eta.strip() or None,
+                                        })
+                                        st.success("Raport zapisany. Postęp zadania został zaktualizowany.")
+                                        st.rerun()
+                                    except Exception as exc:
+                                        st.error(f"Nie udało się zapisać raportu: {exc}")
+                    try:
+                        reports = get(f"/api/tasks/{task.get('id_planu')}/{task.get('id_zadania')}/reports", person_id)
+                    except Exception as exc:
+                        reports = []
+                        st.warning(f"Nie udało się pobrać historii raportów: {exc}")
+                    with st.expander(f"Historia raportów ({len(reports)})", expanded=bool(reports)):
+                        if not reports:
+                            st.caption("Brak zapisanych raportów wykonania.")
+                        for report in reports:
+                            st.markdown(f"**{report.get('created_at', '—')} · {report.get('author_name', 'Użytkownik')} · {float(report.get('poziom_realizacji', 0))*100:.0f}%**")
+                            st.write(report.get("wykonane_czynnosci", "—"))
+                            if report.get("przeszkody"):
+                                st.caption(f"Przeszkody / ryzyka: {report['przeszkody']}")
+                            if report.get("potrzeby"):
+                                st.caption(f"Potrzebne wsparcie: {report['potrzeby']}")
+                            if report.get("przewidywany_termin"):
+                                st.caption(f"Przewidywany termin zakończenia: {report['przewidywany_termin']}")
+                            st.divider()
                     st.write(f"**Ostatnia aktualizacja:** {task.get('data_aktualizacji','—')}")
 
         with task_views[1]:

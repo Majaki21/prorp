@@ -190,3 +190,9 @@ docker compose up --build
 UI: http://localhost:8501 · Presentation API: http://localhost:8000/health
 
 Testy w tym środowisku: `pytest -q` (31 testów). W środowisku implementacyjnym nie było dostępnego polecenia Docker, więc nie wykonano tutaj testu uruchomienia całego stosu w kontenerach.
+
+## Raportowanie rzeczywiste z wykonania zadania
+
+W widoku **Zadania → Szczegóły zadania** uprawniona jednostka może rozwinąć formularz **Złóż raport rzeczywistego wykonania**. Raport zawiera opis wykonanych czynności, postęp po raporcie, przeszkody/ryzyka, potrzebne wsparcie oraz przewidywany termin zakończenia. Raport jest zapisywany w tabeli `task_reports`, a postęp zadania aktualizowany w tej samej transakcji. Historia raportów jest dostępna w szczegółach zadania.
+
+Zapisy raportów przechodzą przez Presentation → Access → Data. Warstwa Access sprawdza widoczność zadania, poziom dostępu, własność zadania i stan planu; identyfikator oraz nazwę autora bierze z uwierzytelnionej tożsamości przekazanej do Access, a nie z pól formularza. Zadania REAL można raportować po aktywacji planu, a PRZ po zatwierdzeniu planu.

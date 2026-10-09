@@ -17,6 +17,17 @@ class TaskProgressUpdate(BaseModel):
     poziom_realizacji: float = Field(ge=0.0, le=1.0)
 
 
+class TaskReportCreate(BaseModel):
+    author_id: str = Field(min_length=1, max_length=128)
+    author_name: str = Field(min_length=1, max_length=200)
+    unit_id: str = Field(min_length=1, max_length=128)
+    poziom_realizacji: float = Field(ge=0.0, le=1.0)
+    wykonane_czynnosci: str = Field(min_length=3, max_length=5000)
+    przeszkody: str = Field(default="", max_length=3000)
+    potrzeby: str = Field(default="", max_length=3000)
+    przewidywany_termin: str | None = Field(default=None, max_length=32)
+
+
 
 
 class PlanCreate(BaseModel):
@@ -138,8 +149,24 @@ def init_db() -> None:
             PRIMARY KEY (unit_id, partner_unit_id),
             CHECK(unit_id <> partner_unit_id)
         );
+        CREATE TABLE IF NOT EXISTS task_reports (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_planu TEXT NOT NULL,
+            id_zadania TEXT NOT NULL,
+            author_id TEXT NOT NULL,
+            author_name TEXT NOT NULL,
+            unit_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            poziom_realizacji REAL NOT NULL CHECK(poziom_realizacji >= 0 AND poziom_realizacji <= 1),
+            wykonane_czynnosci TEXT NOT NULL,
+            przeszkody TEXT NOT NULL DEFAULT '',
+            potrzeby TEXT NOT NULL DEFAULT '',
+            przewidywany_termin TEXT,
+            FOREIGN KEY(id_planu, id_zadania) REFERENCES tasks(id_planu, id_zadania) ON DELETE CASCADE
+        );
         CREATE INDEX IF NOT EXISTS idx_tasks_plan ON tasks(id_planu);
         CREATE INDEX IF NOT EXISTS idx_units_region ON units(id_regionu);
+        CREATE INDEX IF NOT EXISTS idx_task_reports_task ON task_reports(id_planu, id_zadania, created_at);
         """)
         # Lightweight migrations for databases created by earlier PoC versions.
         for table, column, definition in [
@@ -632,6 +659,45 @@ def update_task_progress(plan_id: str, task_id: str, request: TaskProgressUpdate
                      (request.poziom_realizacji, int(request.poziom_realizacji >= 1.0), datetime.now(timezone.utc).date().isoformat(), plan_id, task_id))
         row = conn.execute("SELECT * FROM tasks WHERE id_planu=? AND id_zadania=?", (plan_id, task_id)).fetchone()
     return task_dict(row)
+
+
+@app.get("/tasks/{plan_id}/{task_id}/reports")
+def get_task_reports(plan_id: str, task_id: str):
+    with db() as conn:
+        exists = conn.execute("SELECT 1 FROM tasks WHERE id_planu=? AND id_zadania=?", (plan_id, task_id)).fetchone()
+        if not exists:
+            raise HTTPException(404, "Task not found")
+        rows = conn.execute(
+            "SELECT * FROM task_reports WHERE id_planu=? AND id_zadania=? ORDER BY created_at DESC, id DESC",
+            (plan_id, task_id),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+@app.post("/tasks/{plan_id}/{task_id}/reports", status_code=201)
+def create_task_report(plan_id: str, task_id: str, request: TaskReportCreate):
+    """Persist an immutable execution report and update the task's current progress atomically."""
+    now = datetime.now(timezone.utc).isoformat()
+    with db() as conn:
+        task = conn.execute("SELECT * FROM tasks WHERE id_planu=? AND id_zadania=?", (plan_id, task_id)).fetchone()
+        if task is None:
+            raise HTTPException(404, "Task not found")
+        conn.execute(
+            """INSERT INTO task_reports
+            (id_planu,id_zadania,author_id,author_name,unit_id,created_at,poziom_realizacji,
+             wykonane_czynnosci,przeszkody,potrzeby,przewidywany_termin)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+            (plan_id, task_id, request.author_id, request.author_name, request.unit_id, now,
+             request.poziom_realizacji, request.wykonane_czynnosci.strip(), request.przeszkody.strip(),
+             request.potrzeby.strip(), request.przewidywany_termin or None),
+        )
+        conn.execute(
+            "UPDATE tasks SET poziom_realizacji=?, status=?, data_aktualizacji=? WHERE id_planu=? AND id_zadania=?",
+            (request.poziom_realizacji, int(request.poziom_realizacji >= 1.0), now[:10], plan_id, task_id),
+        )
+        report_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        row = conn.execute("SELECT * FROM task_reports WHERE id=?", (report_id,)).fetchone()
+    return dict(row)
 
 
 @app.get("/people")

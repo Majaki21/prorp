@@ -230,6 +230,25 @@ async def create_task(plan_id: str, payload: dict, x_person_id: str | None = Hea
     return await access_mutate("POST", f"/plans/{plan_id}/tasks", payload, person_id=x_person_id)
 
 
+@app.get("/api/tasks/{plan_id}/{task_id}/reports")
+async def task_reports(
+    plan_id: str,
+    task_id: str,
+    x_person_id: str | None = Header(default=None, alias="X-Person-Id"),
+):
+    return await access_get(f"/tasks/{plan_id}/{task_id}/reports", person_id=x_person_id)
+
+
+@app.post("/api/tasks/{plan_id}/{task_id}/reports", status_code=201)
+async def create_task_report(
+    plan_id: str,
+    task_id: str,
+    payload: dict,
+    x_person_id: str | None = Header(default=None, alias="X-Person-Id"),
+):
+    return await access_mutate("POST", f"/tasks/{plan_id}/{task_id}/reports", payload, person_id=x_person_id)
+
+
 @app.patch("/api/tasks/{plan_id}/{task_id}/progress")
 async def update_task_progress(
     plan_id: str,
