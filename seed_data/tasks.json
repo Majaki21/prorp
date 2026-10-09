@@ -12,7 +12,8 @@
     "zasoby": {
       "personel": 66,
       "pojazdy": 6
-    }
+    },
+    "termin_realizacji": "2026-11-10"
   },
   {
     "id_planu": "ORP",
@@ -27,7 +28,8 @@
     "zasoby": {
       "personel": 69,
       "pojazdy": 0
-    }
+    },
+    "termin_realizacji": "2026-10-12"
   },
   {
     "id_planu": "ORS",
@@ -42,7 +44,8 @@
     "zasoby": {
       "personel": 41,
       "pojazdy": 7
-    }
+    },
+    "termin_realizacji": "2026-11-24"
   },
   {
     "id_planu": "ORPP",
@@ -57,7 +60,8 @@
     "zasoby": {
       "personel": 64,
       "pojazdy": 2
-    }
+    },
+    "termin_realizacji": "2027-11-02"
   },
   {
     "id_planu": "ORSS",
@@ -72,7 +76,8 @@
     "zasoby": {
       "personel": 23,
       "pojazdy": 8
-    }
+    },
+    "termin_realizacji": "2026-10-22"
   },
   {
     "id_planu": "ORPPP",
@@ -87,7 +92,8 @@
     "zasoby": {
       "personel": 41,
       "pojazdy": 12
-    }
+    },
+    "termin_realizacji": "2026-11-18"
   },
   {
     "id_planu": "ORSSS",
@@ -102,7 +108,8 @@
     "zasoby": {
       "personel": 17,
       "pojazdy": 7
-    }
+    },
+    "termin_realizacji": "2026-11-09"
   },
   {
     "id_planu": "OK",
@@ -117,7 +124,8 @@
     "zasoby": {
       "personel": 31,
       "pojazdy": 7
-    }
+    },
+    "termin_realizacji": "2026-11-05"
   },
   {
     "id_planu": "OW",
@@ -132,7 +140,8 @@
     "zasoby": {
       "personel": 10,
       "pojazdy": 1
-    }
+    },
+    "termin_realizacji": "2026-10-26"
   },
   {
     "id_planu": "PP",
@@ -147,7 +156,8 @@
     "zasoby": {
       "personel": 64,
       "pojazdy": 6
-    }
+    },
+    "termin_realizacji": "2027-09-26"
   },
   {
     "id_planu": "SK",
@@ -162,7 +172,8 @@
     "zasoby": {
       "personel": 62,
       "pojazdy": 13
-    }
+    },
+    "termin_realizacji": "2026-11-14"
   },
   {
     "id_planu": "TD",
@@ -177,7 +188,8 @@
     "zasoby": {
       "personel": 56,
       "pojazdy": 13
-    }
+    },
+    "termin_realizacji": "2026-11-19"
   },
   {
     "id_planu": "SD",
@@ -192,7 +204,8 @@
     "zasoby": {
       "personel": 9,
       "pojazdy": 12
-    }
+    },
+    "termin_realizacji": "2026-10-14"
   },
   {
     "id_planu": "SK",
@@ -207,7 +220,8 @@
     "zasoby": {
       "personel": 26,
       "pojazdy": 6
-    }
+    },
+    "termin_realizacji": "2026-11-07"
   },
   {
     "id_planu": "TD",
@@ -222,7 +236,8 @@
     "zasoby": {
       "personel": 37,
       "pojazdy": 14
-    }
+    },
+    "termin_realizacji": "2026-10-17"
   },
   {
     "id_planu": "RN",
@@ -237,7 +252,8 @@
     "zasoby": {
       "personel": 72,
       "pojazdy": 3
-    }
+    },
+    "termin_realizacji": "2027-09-23"
   },
   {
     "id_planu": "RL",
@@ -252,7 +268,8 @@
     "zasoby": {
       "personel": 13,
       "pojazdy": 7
-    }
+    },
+    "termin_realizacji": "2027-03-19"
   },
   {
     "id_planu": "SD",
@@ -267,7 +284,8 @@
     "zasoby": {
       "personel": 53,
       "pojazdy": 1
-    }
+    },
+    "termin_realizacji": "2026-09-24"
   },
   {
     "id_planu": "SK",
@@ -282,7 +300,8 @@
     "zasoby": {
       "personel": 60,
       "pojazdy": 9
-    }
+    },
+    "termin_realizacji": "2026-10-11"
   },
   {
     "id_planu": "TD",
@@ -297,7 +316,8 @@
     "zasoby": {
       "personel": 21,
       "pojazdy": 6
-    }
+    },
+    "termin_realizacji": "2026-10-26"
   },
   {
     "id_planu": "OR",
@@ -312,7 +332,8 @@
     "zasoby": {
       "personel": 71,
       "pojazdy": 1
-    }
+    },
+    "termin_realizacji": "2026-10-24"
   },
   {
     "id_planu": "RL",
@@ -327,7 +348,8 @@
     "zasoby": {
       "personel": 66,
       "pojazdy": 5
-    }
+    },
+    "termin_realizacji": "2026-12-21"
   },
   {
     "id_planu": "ORS",
@@ -342,7 +364,8 @@
     "zasoby": {
       "personel": 10,
       "pojazdy": 2
-    }
+    },
+    "termin_realizacji": "2026-12-12"
   },
   {
     "id_planu": "RL",
@@ -357,7 +380,8 @@
     "zasoby": {
       "personel": 74,
       "pojazdy": 7
-    }
+    },
+    "termin_realizacji": "2026-09-07"
   },
   {
     "id_planu": "RN",
@@ -372,7 +396,8 @@
     "zasoby": {
       "personel": 76,
       "pojazdy": 10
-    }
+    },
+    "termin_realizacji": "2026-11-04"
   },
   {
     "id_planu": "SK",
@@ -387,7 +412,8 @@
     "zasoby": {
       "personel": 35,
       "pojazdy": 12
-    }
+    },
+    "termin_realizacji": "2026-10-23"
   },
   {
     "id_planu": "ORSSS",
@@ -402,7 +428,8 @@
     "zasoby": {
       "personel": 42,
       "pojazdy": 2
-    }
+    },
+    "termin_realizacji": "2026-11-09"
   },
   {
     "id_planu": "SD",
@@ -417,7 +444,8 @@
     "zasoby": {
       "personel": 70,
       "pojazdy": 6
-    }
+    },
+    "termin_realizacji": "2026-11-08"
   },
   {
     "id_planu": "SK",
@@ -432,7 +460,8 @@
     "zasoby": {
       "personel": 33,
       "pojazdy": 11
-    }
+    },
+    "termin_realizacji": "2027-06-01"
   },
   {
     "id_planu": "PP",
@@ -447,7 +476,8 @@
     "zasoby": {
       "personel": 80,
       "pojazdy": 0
-    }
+    },
+    "termin_realizacji": "2026-11-11"
   },
   {
     "id_planu": "PS",
@@ -462,7 +492,8 @@
     "zasoby": {
       "personel": 19,
       "pojazdy": 8
-    }
+    },
+    "termin_realizacji": "2027-10-25"
   },
   {
     "id_planu": "PPP",
@@ -477,7 +508,8 @@
     "zasoby": {
       "personel": 36,
       "pojazdy": 9
-    }
+    },
+    "termin_realizacji": "2026-12-13"
   },
   {
     "id_planu": "PSS",
@@ -492,7 +524,8 @@
     "zasoby": {
       "personel": 35,
       "pojazdy": 15
-    }
+    },
+    "termin_realizacji": "2026-10-26"
   },
   {
     "id_planu": "PPPP",
@@ -507,7 +540,8 @@
     "zasoby": {
       "personel": 56,
       "pojazdy": 8
-    }
+    },
+    "termin_realizacji": "2026-12-22"
   },
   {
     "id_planu": "PSSS",
@@ -522,7 +556,8 @@
     "zasoby": {
       "personel": 22,
       "pojazdy": 14
-    }
+    },
+    "termin_realizacji": "2026-11-20"
   },
   {
     "id_planu": "RN",
@@ -537,7 +572,8 @@
     "zasoby": {
       "personel": 16,
       "pojazdy": 2
-    }
+    },
+    "termin_realizacji": "2026-12-19"
   },
   {
     "id_planu": "RL",
@@ -552,7 +588,8 @@
     "zasoby": {
       "personel": 49,
       "pojazdy": 4
-    }
+    },
+    "termin_realizacji": "2026-09-15"
   },
   {
     "id_planu": "SD",
@@ -567,7 +604,8 @@
     "zasoby": {
       "personel": 7,
       "pojazdy": 11
-    }
+    },
+    "termin_realizacji": "2026-12-18"
   },
   {
     "id_planu": "SK",
@@ -582,7 +620,8 @@
     "zasoby": {
       "personel": 73,
       "pojazdy": 13
-    }
+    },
+    "termin_realizacji": "2026-12-05"
   },
   {
     "id_planu": "TD",
@@ -597,7 +636,8 @@
     "zasoby": {
       "personel": 24,
       "pojazdy": 13
-    }
+    },
+    "termin_realizacji": "2027-02-24"
   },
   {
     "id_planu": "OR",
@@ -612,7 +652,8 @@
     "zasoby": {
       "personel": 33,
       "pojazdy": 8
-    }
+    },
+    "termin_realizacji": "2026-11-09"
   },
   {
     "id_planu": "ORP",
@@ -627,7 +668,8 @@
     "zasoby": {
       "personel": 6,
       "pojazdy": 15
-    }
+    },
+    "termin_realizacji": "2026-11-15"
   },
   {
     "id_planu": "ORS",
@@ -642,7 +684,8 @@
     "zasoby": {
       "personel": 41,
       "pojazdy": 7
-    }
+    },
+    "termin_realizacji": "2026-12-23"
   },
   {
     "id_planu": "ORPP",
@@ -657,7 +700,8 @@
     "zasoby": {
       "personel": 44,
       "pojazdy": 8
-    }
+    },
+    "termin_realizacji": "2026-10-16"
   },
   {
     "id_planu": "ORSS",
@@ -672,7 +716,8 @@
     "zasoby": {
       "personel": 67,
       "pojazdy": 12
-    }
+    },
+    "termin_realizacji": "2026-12-12"
   },
   {
     "id_planu": "OK",
@@ -687,7 +732,8 @@
     "zasoby": {
       "personel": 5,
       "pojazdy": 3
-    }
+    },
+    "termin_realizacji": "2026-11-16"
   },
   {
     "id_planu": "ORSSS",
@@ -702,7 +748,8 @@
     "zasoby": {
       "personel": 15,
       "pojazdy": 13
-    }
+    },
+    "termin_realizacji": "2026-10-16"
   },
   {
     "id_planu": "TD",
@@ -717,7 +764,8 @@
     "zasoby": {
       "personel": 79,
       "pojazdy": 3
-    }
+    },
+    "termin_realizacji": "2026-10-28"
   },
   {
     "id_planu": "OW",
@@ -732,7 +780,8 @@
     "zasoby": {
       "personel": 7,
       "pojazdy": 13
-    }
+    },
+    "termin_realizacji": "2027-05-12"
   },
   {
     "id_planu": "PP",
@@ -747,7 +796,8 @@
     "zasoby": {
       "personel": 48,
       "pojazdy": 13
-    }
+    },
+    "termin_realizacji": "2026-12-12"
   },
   {
     "id_planu": "PS",
@@ -762,7 +812,8 @@
     "zasoby": {
       "personel": 43,
       "pojazdy": 3
-    }
+    },
+    "termin_realizacji": "2026-12-19"
   },
   {
     "id_planu": "PPP",
@@ -777,7 +828,8 @@
     "zasoby": {
       "personel": 54,
       "pojazdy": 9
-    }
+    },
+    "termin_realizacji": "2026-11-06"
   },
   {
     "id_planu": "PSS",
@@ -792,7 +844,8 @@
     "zasoby": {
       "personel": 98,
       "pojazdy": 5
-    }
+    },
+    "termin_realizacji": "2026-11-20"
   },
   {
     "id_planu": "PPPP",
@@ -807,7 +860,8 @@
     "zasoby": {
       "personel": 39,
       "pojazdy": 6
-    }
+    },
+    "termin_realizacji": "2026-11-21"
   },
   {
     "id_planu": "PSSS",
@@ -822,7 +876,8 @@
     "zasoby": {
       "personel": 59,
       "pojazdy": 14
-    }
+    },
+    "termin_realizacji": "2026-12-13"
   },
   {
     "id_planu": "RN",
@@ -837,7 +892,8 @@
     "zasoby": {
       "personel": 13,
       "pojazdy": 9
-    }
+    },
+    "termin_realizacji": "2026-12-01"
   },
   {
     "id_planu": "RL",
@@ -852,7 +908,8 @@
     "zasoby": {
       "personel": 42,
       "pojazdy": 7
-    }
+    },
+    "termin_realizacji": "2026-12-14"
   },
   {
     "id_planu": "SD",
@@ -867,7 +924,8 @@
     "zasoby": {
       "personel": 63,
       "pojazdy": 19
-    }
+    },
+    "termin_realizacji": "2026-12-08"
   },
   {
     "id_planu": "SK",
@@ -882,7 +940,8 @@
     "zasoby": {
       "personel": 92,
       "pojazdy": 12
-    }
+    },
+    "termin_realizacji": "2026-10-23"
   },
   {
     "id_planu": "TD",
@@ -897,7 +956,8 @@
     "zasoby": {
       "personel": 91,
       "pojazdy": 0
-    }
+    },
+    "termin_realizacji": "2027-03-15"
   },
   {
     "id_planu": "SD",
@@ -912,7 +972,8 @@
     "zasoby": {
       "personel": 92,
       "pojazdy": 16
-    }
+    },
+    "termin_realizacji": "2026-09-16"
   },
   {
     "id_planu": "SK",
@@ -927,7 +988,8 @@
     "zasoby": {
       "personel": 61,
       "pojazdy": 4
-    }
+    },
+    "termin_realizacji": "2027-01-23"
   },
   {
     "id_planu": "TD",
@@ -942,7 +1004,8 @@
     "zasoby": {
       "personel": 43,
       "pojazdy": 14
-    }
+    },
+    "termin_realizacji": "2027-04-18"
   },
   {
     "id_planu": "SD",
@@ -957,7 +1020,8 @@
     "zasoby": {
       "personel": 73,
       "pojazdy": 14
-    }
+    },
+    "termin_realizacji": "2026-10-16"
   },
   {
     "id_planu": "SK",
@@ -972,7 +1036,8 @@
     "zasoby": {
       "personel": 36,
       "pojazdy": 7
-    }
+    },
+    "termin_realizacji": "2026-12-17"
   },
   {
     "id_planu": "ORPPP",
@@ -987,7 +1052,8 @@
     "zasoby": {
       "personel": 83,
       "pojazdy": 7
-    }
+    },
+    "termin_realizacji": "2026-10-27"
   },
   {
     "id_planu": "ORSSS",
@@ -1002,7 +1068,8 @@
     "zasoby": {
       "personel": 37,
       "pojazdy": 10
-    }
+    },
+    "termin_realizacji": "2026-10-04"
   },
   {
     "id_planu": "OK",
@@ -1017,7 +1084,8 @@
     "zasoby": {
       "personel": 22,
       "pojazdy": 7
-    }
+    },
+    "termin_realizacji": "2026-11-21"
   },
   {
     "id_planu": "OW",
@@ -1032,7 +1100,8 @@
     "zasoby": {
       "personel": 56,
       "pojazdy": 13
-    }
+    },
+    "termin_realizacji": "2026-10-13"
   },
   {
     "id_planu": "PP",
@@ -1047,7 +1116,8 @@
     "zasoby": {
       "personel": 29,
       "pojazdy": 13
-    }
+    },
+    "termin_realizacji": "2026-11-18"
   },
   {
     "id_planu": "PS",
@@ -1062,7 +1132,8 @@
     "zasoby": {
       "personel": 76,
       "pojazdy": 12
-    }
+    },
+    "termin_realizacji": "2026-12-04"
   },
   {
     "id_planu": "RL",
@@ -1077,7 +1148,8 @@
     "zasoby": {
       "personel": 99,
       "pojazdy": 12
-    }
+    },
+    "termin_realizacji": "2026-11-24"
   },
   {
     "id_planu": "RN",
@@ -1092,7 +1164,8 @@
     "zasoby": {
       "personel": 80,
       "pojazdy": 7
-    }
+    },
+    "termin_realizacji": "2026-12-21"
   },
   {
     "id_planu": "RL",
@@ -1107,7 +1180,8 @@
     "zasoby": {
       "personel": 6,
       "pojazdy": 12
-    }
+    },
+    "termin_realizacji": "2026-10-28"
   },
   {
     "id_planu": "RN",
@@ -1122,7 +1196,8 @@
     "zasoby": {
       "personel": 24,
       "pojazdy": 14
-    }
+    },
+    "termin_realizacji": "2026-12-07"
   },
   {
     "id_planu": "SD",
@@ -1137,7 +1212,8 @@
     "zasoby": {
       "personel": 53,
       "pojazdy": 18
-    }
+    },
+    "termin_realizacji": "2026-11-22"
   },
   {
     "id_planu": "RL",
@@ -1152,7 +1228,8 @@
     "zasoby": {
       "personel": 57,
       "pojazdy": 4
-    }
+    },
+    "termin_realizacji": "2026-12-10"
   },
   {
     "id_planu": "TD",
@@ -1167,7 +1244,8 @@
     "zasoby": {
       "personel": 44,
       "pojazdy": 6
-    }
+    },
+    "termin_realizacji": "2026-11-05"
   },
   {
     "id_planu": "SD",
@@ -1182,7 +1260,8 @@
     "zasoby": {
       "personel": 99,
       "pojazdy": 13
-    }
+    },
+    "termin_realizacji": "2026-12-13"
   },
   {
     "id_planu": "SK",
@@ -1197,7 +1276,8 @@
     "zasoby": {
       "personel": 98,
       "pojazdy": 17
-    }
+    },
+    "termin_realizacji": "2026-10-11"
   },
   {
     "id_planu": "OR",
@@ -1212,7 +1292,8 @@
     "zasoby": {
       "personel": 86,
       "pojazdy": 2
-    }
+    },
+    "termin_realizacji": "2026-11-25"
   },
   {
     "id_planu": "ORP",
@@ -1227,7 +1308,8 @@
     "zasoby": {
       "personel": 28,
       "pojazdy": 0
-    }
+    },
+    "termin_realizacji": "2026-11-10"
   },
   {
     "id_planu": "ORS",
@@ -1242,7 +1324,8 @@
     "zasoby": {
       "personel": 88,
       "pojazdy": 3
-    }
+    },
+    "termin_realizacji": "2026-11-30"
   },
   {
     "id_planu": "ORPP",
@@ -1257,7 +1340,8 @@
     "zasoby": {
       "personel": 35,
       "pojazdy": 11
-    }
+    },
+    "termin_realizacji": "2026-12-08"
   },
   {
     "id_planu": "ORSS",
@@ -1272,7 +1356,8 @@
     "zasoby": {
       "personel": 23,
       "pojazdy": 9
-    }
+    },
+    "termin_realizacji": "2026-12-19"
   },
   {
     "id_planu": "ORPPP",
@@ -1287,7 +1372,8 @@
     "zasoby": {
       "personel": 89,
       "pojazdy": 12
-    }
+    },
+    "termin_realizacji": "2026-10-25"
   },
   {
     "id_planu": "ORSSS",
@@ -1302,7 +1388,8 @@
     "zasoby": {
       "personel": 78,
       "pojazdy": 20
-    }
+    },
+    "termin_realizacji": "2026-10-23"
   },
   {
     "id_planu": "OK",
@@ -1317,7 +1404,8 @@
     "zasoby": {
       "personel": 79,
       "pojazdy": 3
-    }
+    },
+    "termin_realizacji": "2027-04-14"
   },
   {
     "id_planu": "OW",
@@ -1332,7 +1420,8 @@
     "zasoby": {
       "personel": 57,
       "pojazdy": 11
-    }
+    },
+    "termin_realizacji": "2026-10-22"
   },
   {
     "id_planu": "PP",
@@ -1347,7 +1436,8 @@
     "zasoby": {
       "personel": 56,
       "pojazdy": 15
-    }
+    },
+    "termin_realizacji": "2026-09-07"
   },
   {
     "id_planu": "PS",
@@ -1362,7 +1452,8 @@
     "zasoby": {
       "personel": 61,
       "pojazdy": 4
-    }
+    },
+    "termin_realizacji": "2026-10-13"
   },
   {
     "id_planu": "PPP",
@@ -1377,7 +1468,8 @@
     "zasoby": {
       "personel": 37,
       "pojazdy": 19
-    }
+    },
+    "termin_realizacji": "2026-12-09"
   },
   {
     "id_planu": "PSS",
@@ -1392,7 +1484,8 @@
     "zasoby": {
       "personel": 96,
       "pojazdy": 18
-    }
+    },
+    "termin_realizacji": "2026-10-15"
   },
   {
     "id_planu": "PPPP",
@@ -1407,7 +1500,8 @@
     "zasoby": {
       "personel": 38,
       "pojazdy": 14
-    }
+    },
+    "termin_realizacji": "2026-11-02"
   },
   {
     "id_planu": "PSSS",
@@ -1422,7 +1516,8 @@
     "zasoby": {
       "personel": 6,
       "pojazdy": 15
-    }
+    },
+    "termin_realizacji": "2026-11-02"
   },
   {
     "id_planu": "RN",
@@ -1437,7 +1532,8 @@
     "zasoby": {
       "personel": 36,
       "pojazdy": 10
-    }
+    },
+    "termin_realizacji": "2026-09-11"
   },
   {
     "id_planu": "RL",
@@ -1452,7 +1548,8 @@
     "zasoby": {
       "personel": 4,
       "pojazdy": 16
-    }
+    },
+    "termin_realizacji": "2026-10-02"
   },
   {
     "id_planu": "SK",
@@ -1467,7 +1564,8 @@
     "zasoby": {
       "personel": 74,
       "pojazdy": 7
-    }
+    },
+    "termin_realizacji": "2026-10-16"
   },
   {
     "id_planu": "SK",
@@ -1482,7 +1580,8 @@
     "zasoby": {
       "personel": 5,
       "pojazdy": 2
-    }
+    },
+    "termin_realizacji": "2026-10-27"
   },
   {
     "id_planu": "OK",
@@ -1497,6 +1596,7 @@
     "zasoby": {
       "personel": 87,
       "pojazdy": 18
-    }
+    },
+    "termin_realizacji": "2026-11-02"
   }
 ]

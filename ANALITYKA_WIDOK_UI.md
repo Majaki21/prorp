@@ -24,11 +24,12 @@ Zakładka analiz korzysta wyłącznie z planów, jednostek i zadań zwróconych 
 ## 4. Porównanie tego samego zadania
 - Porównywane są zadania końcowe o identycznej nazwie, które występują w co najmniej dwóch jednostkach widocznych dla konta.
 - UI pokazuje postęp, czas od utworzenia, tempo, prognozowany czas pozostały, personel jednostki i zadania na osobę.
-- Jeżeli w danych nie ma powtarzających się zadań, UI wyświetla komunikat o braku porównania; nie tworzy syntetycznych rekordów.
+- Porównanie tych samych zadań w wielu jednostkach nie jest obecnie prezentowane w UI, ponieważ źródło nie zapewnia wystarczających danych do rzetelnego benchmarku.
 
-## 5. Sugestie wsparcia
-- Jednostka wspierająca jest proponowana na podstawie wysokiej wydajności i niższego ryzyka; jednostka wymagająca wsparcia na podstawie wysokiego ryzyka i niższej wydajności.
-- Sugestie są przeznaczone do weryfikacji przez koordynatora. Nie powodują automatycznego przeniesienia personelu ani odpowiedzialności.
+## 5. Zakres UI
+- Usunięto sekcję sugestii przenoszenia wsparcia między jednostkami oraz porównanie tego samego zadania między jednostkami, ponieważ dostępne dane nie uzasadniają takich rekomendacji.
 
 ## Ograniczenia danych
-- Jeżeli model źródłowy nie zawiera terminu realizacji, daty utworzenia, hierarchii podzadań, jawnych przypisań wielojednostkowych lub liczby personelu, nie da się wiarygodnie odtworzyć tych wartości z samego UI. Wskaźniki zależne od brakujących danych są puste albo opatrzone informacją o ograniczeniu.
+- W danych demonstracyjnych dodano sztuczne terminy realizacji (część w najbliższym tygodniu, część w przyszłym roku, pozostałe w losowym zakresie, w tym kilka terminów już minionych). Nie są to terminy oficjalne. Nowe zadania bez podanego terminu nadal mogą mieć pustą datę.
+- Jeżeli model źródłowy nie zawiera daty utworzenia, hierarchii podzadań, jawnych przypisań wielojednostkowych lub liczby personelu, nie da się wiarygodnie odtworzyć tych wartości z samego UI. Wskaźniki zależne od brakujących danych są puste albo opatrzone informacją o ograniczeniu.
+- Wartości liczbowe prezentowane w tabelach są zaokrąglane do dwóch miejsc po przecinku.

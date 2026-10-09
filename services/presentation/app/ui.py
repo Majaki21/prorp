@@ -2,7 +2,6 @@ import os
 import asyncio
 from datetime import date, datetime, timedelta
 from urllib.parse import quote
-from collections import defaultdict
 
 import httpx
 import pandas as pd
@@ -514,7 +513,7 @@ def main():
     with tab_analytics:
         from app.analytics_ui import (
             leaf_tasks, top_level_tasks, task_status_band, estimate_task_duration, days_until,
-            unit_metrics, recommend_support, build_unit_task_rows,
+            unit_metrics, build_unit_task_rows,
         )
         st.header("Analizy realizacji zadań")
         st.caption("Zakres danych jest ograniczony przez Access do planów, jednostek i zadań widocznych dla wybranego konta. Analiza nie rozszerza uprawnień użytkownika.")
@@ -588,7 +587,7 @@ def main():
                     }
                 }, use_container_width=True)
             with c2:
-                st.dataframe(pd.DataFrame([{"Status": b, "Liczba zadań": counts[b], "Udział (%)": round(100*counts[b]/len(analyzed_tasks), 1)} for b in bands]), use_container_width=True, hide_index=True)
+                st.dataframe(pd.DataFrame([{"Status": b, "Liczba zadań": counts[b], "Udział (%)": round(100*counts[b]/len(analyzed_tasks), 2)} for b in bands]), use_container_width=True, hide_index=True)
                 st.caption("Zadanie nadrzędne jest pomijane w podsumowaniu, jeśli ma podzadania. Każde zadanie końcowe liczy się tylko raz.")
 
             # 2. Time, due date, duration prediction and delay risk.
@@ -603,7 +602,7 @@ def main():
                 status = row.get("Opóźnienie")
                 color = "background-color: #fee2e2; color: #991b1b" if status == "Opóźnione" else ("background-color: #ffedd5; color: #9a3412" if status == "Potencjalne" else "")
                 return [color if col == "Opóźnienie" else "" for col in row.index]
-            st.dataframe(task_df.style.apply(highlight_delay, axis=1), use_container_width=True, hide_index=True, column_config={
+            st.dataframe(task_df.style.apply(highlight_delay, axis=1).format(precision=2, na_rep="—"), use_container_width=True, hide_index=True, column_config={
                 "Opóźnienie": st.column_config.TextColumn("Opóźnienie", help="Brak / Potencjalne / Opóźnione. Ocena terminowości wymaga terminu końcowego w danych."),
                 "Termin realizacji": st.column_config.TextColumn("Termin realizacji"),
                 "Prognoza: pozostało (dni)": st.column_config.NumberColumn("Prognoza: pozostało (dni)", format="%.1f"),
@@ -623,8 +622,8 @@ def main():
                     elif row.get("Wydajność (0–100)") is not None and row.get("Wydajność (0–100)") < 30:
                         styles = ["background-color: #fee2e2; color: #991b1b"] * len(row)
                     return styles
-                st.dataframe(unit_df.style.apply(highlight_unit_risk, axis=1), use_container_width=True, hide_index=True, column_config={
-                    "Wydajność (0–100)": st.column_config.ProgressColumn("Wydajność (0–100)", min_value=0, max_value=100, format="%.1f", help="Wynik porównawczy łączący tempo, postęp i obciążenie zadaniami na osobę."),
+                st.dataframe(unit_df.style.apply(highlight_unit_risk, axis=1).format(precision=2, na_rep="—"), use_container_width=True, hide_index=True, column_config={
+                    "Wydajność (0–100)": st.column_config.ProgressColumn("Wydajność (0–100)", min_value=0, max_value=100, format="%.2f", help="Wynik porównawczy łączący tempo, postęp i obciążenie zadaniami na osobę."),
                     "Ryzyko przeciążenia": st.column_config.TextColumn("Ryzyko przeciążenia"),
                 })
                 chart_cols = st.columns([1.4, 1])
@@ -640,46 +639,9 @@ def main():
                     st.metric("Korelacja: personel ↔ postęp", f"{corr:.2f}", help="Korelacja Pearsona na poziomie jednostek widocznych w wybranym zakresie; nie oznacza przyczynowości.")
                 st.caption("Wydajność jest względnym wskaźnikiem porównawczym w obrębie aktualnie widocznego zakresu. Niski wynik oznaczono na czerwono, a wysokie ryzyko przeciążenia na czerwono lub pomarańczowo. To heurystyka, nie miara jakości pracy.")
 
-            # 4. Compare common task titles across authorized units. Analysis-only copies are excluded.
-            st.subheader("4. To samo zadanie w różnych jednostkach")
-            by_name = defaultdict(list)
-            for task in analyzed_tasks:
-                assigned = {str(x) for x in (task.get("id_jednostek") or [])}
-                uid = next(iter(assigned & scope_ids), plan_owner.get(str(task.get("id_planu", "")), ""))
-                if uid in scope_ids:
-                    by_name[str(task.get("nazwa_zadania") or task.get("id_zadania"))].append((task, uid))
-            comparisons = []
-            for task_name, group in by_name.items():
-                unique_units = {uid for _, uid in group}
-                if len(unique_units) < 2:
-                    continue
-                for task, uid in group:
-                    staff = float((unit_map.get(uid, {}).get("zasoby") or {}).get("personel") or 0)
-                    created = str(task.get("data_utworzenia") or "")[:10]
-                    try: elapsed = max(0, (date.today() - date.fromisoformat(created)).days)
-                    except ValueError: elapsed = None
-                    pct = clamp_progress(task) * 100
-                    duration = estimate_task_duration(task)
-                    pace = (pct / elapsed) if elapsed and elapsed > 0 else None
-                    comparisons.append({"Zadanie": task_name, "Jednostka": unit_names.get(uid, uid), "Postęp (%)": round(pct,1), "Czas od utworzenia (dni)": elapsed, "Prognoza: pozostało (dni)": duration["remaining_days"], "Tempo (p.p./dzień)": round(pace, 3) if pace is not None else None, "Personel jednostki": int(staff), "Zadania / osoba": round(sum(1 for t in analyzed_tasks if (plan_owner.get(str(t.get("id_planu", "")), "") == uid)) / staff, 3) if staff else None})
-            if comparisons:
-                st.dataframe(pd.DataFrame(comparisons), use_container_width=True, hide_index=True)
-                st.caption("Porównanie obejmuje tylko nazwy zadań powtarzające się w rzeczywistych danych widocznych dla konta. Kopie syntetyczne nie są używane w tym widoku.")
-            else:
-                st.info("W tym zakresie nie znaleziono identycznie nazwanych zadań przypisanych do co najmniej dwóch jednostek. Nie zastępujemy braku danych syntetycznymi kopiami w tym raporcie.")
-
-            # 5. Suggestions for rebalancing, grounded in visible unit data.
-            st.subheader("5. Sugestie wsparcia między jednostkami")
-            suggestions = recommend_support(unit_rows)
-            if suggestions:
-                st.dataframe(pd.DataFrame(suggestions), use_container_width=True, hide_index=True)
-                st.caption("To propozycje do weryfikacji przez koordynatora. Wskaźnik nie przenosi automatycznie personelu ani odpowiedzialności za zadania.")
-            else:
-                st.info("Brak wystarczających danych, aby wskazać bezpieczną sugestię przesunięcia wsparcia.")
-
             with st.expander("Ograniczenia i jakość danych"):
-                st.write("- W bieżącym modelu zadań nie ma jawnych pól terminu końcowego ani relacji rodzic–podzadanie. UI obsługuje takie pola, jeśli zostaną dodane, ale obecnie nie może ich wiarygodnie odtworzyć.")
-                st.write("- Gdy brak terminu końcowego, opóźnienie nie jest zgadywane. W tabeli pojawia się informacja o braku terminu.")
+                st.write("- Terminy realizacji w danych demonstracyjnych zostały wygenerowane sztucznie. Nie są to oficjalne terminy operacyjne.")
+                st.write("- Prognoza czasu pozostałego jest ekstrapolacją dotychczasowego tempa, a nie gwarancją daty ukończenia.")
                 st.write("- Wskaźniki kadrowe i efektywnościowe są heurystykami, a nie oceną jakości pracy jednostek.")
                 st.write("- Wszystkie agregacje wykorzystują tylko dane zwrócone przez API po kontroli dostępu.")
 

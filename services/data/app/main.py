@@ -2,7 +2,8 @@ import json
 import os
 import sqlite3
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
+import random
 from pathlib import Path
 from typing import Any
 from pydantic import BaseModel, Field
@@ -110,6 +111,7 @@ def init_db() -> None:
             zasoby_json TEXT NOT NULL DEFAULT '{}',
             klauzula_tajnosci TEXT NOT NULL DEFAULT 'scisle_tajne',
             typ_zadania TEXT NOT NULL DEFAULT 'REAL',
+            termin_realizacji TEXT NULL,
             PRIMARY KEY (id_planu, id_zadania)
         );
         CREATE TABLE IF NOT EXISTS people (
@@ -142,6 +144,7 @@ def init_db() -> None:
             ("units", "pracownicy_json", "TEXT NOT NULL DEFAULT '[]'"),
             ("tasks", "klauzula_tajnosci", "TEXT NOT NULL DEFAULT 'scisle_tajne'"),
             ("tasks", "typ_zadania", "TEXT NOT NULL DEFAULT 'REAL'"),
+            ("tasks", "termin_realizacji", "TEXT NULL"),
             ("unit_cooperation", "sharing_level", "TEXT NOT NULL DEFAULT 'details'"),
         ]:
             existing = {r[1] for r in conn.execute(f"PRAGMA table_info({table})").fetchall()}
@@ -173,12 +176,12 @@ def init_db() -> None:
                     json.dumps(u.get("pracownicy", []), ensure_ascii=False)
                 ))
             for t in seed.get("tasks", []):
-                conn.execute("""INSERT INTO tasks (id_planu,id_zadania,id_jednostek_json,nazwa_zadania,data_utworzenia,data_aktualizacji,status,poziom_realizacji,koszt,zasoby_json,klauzula_tajnosci) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
+                conn.execute("""INSERT INTO tasks (id_planu,id_zadania,id_jednostek_json,nazwa_zadania,data_utworzenia,data_aktualizacji,status,poziom_realizacji,koszt,zasoby_json,klauzula_tajnosci,termin_realizacji) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
                     t["id_planu"], t["id_zadania"], json.dumps(t.get("id_jednostek", []), ensure_ascii=False),
                     t["nazwa_zadania"], t["data_utworzenia"], t["data_aktualizacji"],
                     int(bool(t.get("status", False))), float(t.get("poziom_realizacji", 0)),
                     float(t.get("koszt", 0)), json.dumps(t.get("zasoby", {}), ensure_ascii=False),
-                    t.get("klauzula_tajnosci", "jawne")
+                    t.get("klauzula_tajnosci", "jawne"), t.get("termin_realizacji")
                 ))
             # Optional employee seed; when omitted, create one clearly labelled demo account per unit.
             people_seed = seed.get("people", [])
@@ -200,6 +203,31 @@ def init_db() -> None:
             for relation in seed.get("wspolpraca", []):
                 conn.execute("INSERT OR IGNORE INTO unit_cooperation (unit_id,partner_unit_id,sharing_level) VALUES (?,?,?)",
                              (str(relation["unit_id"]), str(relation["partner_unit_id"]), relation.get("sharing_level", "details")))
+        # Synthetic demo deadlines: fill only missing values in older persistent databases.
+        # These dates are illustrative test data, not official operational deadlines.
+        missing_deadlines = conn.execute(
+            "SELECT id_planu,id_zadania FROM tasks WHERE termin_realizacji IS NULL OR termin_realizacji=''"
+            " ORDER BY id_planu,id_zadania"
+        ).fetchall()
+        if missing_deadlines:
+            deadline_rng = random.Random(20261010)
+            indices = list(range(len(missing_deadlines)))
+            deadline_rng.shuffle(indices)
+            urgent = set(indices[:min(12, len(indices))])
+            annual = set(indices[12:24])
+            past = set(indices[24:32])
+            today = date.today()
+            for i, row in enumerate(missing_deadlines):
+                if i in urgent:
+                    due = today + timedelta(days=deadline_rng.randint(1, 7))
+                elif i in annual:
+                    due = date(today.year + 1, deadline_rng.randint(1, 12), 1) + timedelta(days=deadline_rng.randint(0, 27))
+                elif i in past:
+                    due = today - timedelta(days=deadline_rng.randint(1, 35))
+                else:
+                    due = today + timedelta(days=deadline_rng.randint(12, 75))
+                conn.execute("UPDATE tasks SET termin_realizacji=? WHERE id_planu=? AND id_zadania=?",
+                             (due.isoformat(), row["id_planu"], row["id_zadania"]))
         # Classify tasks explicitly. Legacy IDs are used only for the one-time PoC migration;
         # all API consumers use the persisted typ_zadania field afterwards.
         conn.execute("UPDATE tasks SET typ_zadania = CASE WHEN upper(id_zadania) LIKE 'PRZ-%' THEN 'PRZ' ELSE 'REAL' END")

@@ -6,7 +6,6 @@ from services.presentation.app.analytics_ui import (
     estimate_task_duration,
     build_unit_task_rows,
     unit_metrics,
-    recommend_support,
 )
 
 
@@ -42,7 +41,7 @@ def test_task_rows_do_not_leak_unit_ids_outside_authorized_scope():
     assert rows[0]["Jednostki uczestniczące"] == 1
 
 
-def test_unit_metrics_and_support_recommendation_are_bounded():
+def test_unit_metrics_are_bounded_and_rounded_to_two_decimals():
     units = [
         {"id": "U1", "nazwa": "Szybka", "zasoby": {"personel": 20}},
         {"id": "U2", "nazwa": "Przeciążona", "zasoby": {"personel": 1}},
@@ -55,7 +54,8 @@ def test_unit_metrics_and_support_recommendation_are_bounded():
     rows = unit_metrics(units, tasks, {"P1": "U1", "P2": "U2"})
     assert all(0 <= r["Wydajność (0–100)"] <= 100 for r in rows if r["Wydajność (0–100)"] is not None)
     assert all(0 <= r["_risk_score"] <= 100 for r in rows)
-    assert isinstance(recommend_support(rows), list)
+    assert all(r["Wydajność (0–100)"] is None or round(r["Wydajność (0–100)"], 2) == r["Wydajność (0–100)"] for r in rows)
+    assert all(r["Zadania / osoba"] is None or round(r["Zadania / osoba"], 2) == r["Zadania / osoba"] for r in rows)
 
 
 def test_top_level_tasks_keeps_parent_for_duration_table():
@@ -79,3 +79,13 @@ def test_leaf_tasks_flattens_nested_subtasks_and_inherits_plan():
     assert {t["id_zadania"] for t in leaves} == {"A.1", "A.2"}
     assert all(t["id_planu"] == "P" for t in leaves)
     assert all(t["id_jednostek"] == ["U1"] for t in leaves)
+
+
+
+def test_duration_predictions_are_rounded_to_two_decimals():
+    result = estimate_task_duration(
+        {"data_utworzenia": "2026-09-01", "poziom_realizacji": 0.3333, "termin_realizacji": "2027-12-31"},
+        as_of=date(2026, 10, 10),
+    )
+    assert result["remaining_days"] == round(result["remaining_days"], 2)
+    assert result["total_days"] == round(result["total_days"], 2)

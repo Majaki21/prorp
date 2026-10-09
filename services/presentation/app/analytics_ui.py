@@ -137,8 +137,8 @@ def estimate_task_duration(task: dict, as_of: date | None = None) -> dict:
         total = float(elapsed) if elapsed is not None else None
     elif elapsed is not None and elapsed > 0 and progress > 0:
         pace = progress / elapsed
-        remaining = round((1-progress) / pace, 1) if pace > 0 else None
-        total = round(elapsed + remaining, 1) if remaining is not None else None
+        remaining = round((1-progress) / pace, 2) if pace > 0 else None
+        total = round(elapsed + remaining, 2) if remaining is not None else None
     else:
         remaining, total = None, None
     deadline = _deadline(task)
@@ -217,30 +217,16 @@ def unit_metrics(units: list[dict], tasks: list[dict], owner_by_plan: dict | Non
         pace_score = min(1, x["pace"] / max_pace)
         throughput_score = min(1, (x["per_person"] or 0) / max_load) if x["per_person"] is not None else 0
         progress_score = (x["mean"] or 0) / 100
-        efficiency = round(100 * (0.45 * pace_score + 0.30 * progress_score + 0.25 * throughput_score), 1) if x["count"] else None
+        efficiency = round(100 * (0.45 * pace_score + 0.30 * progress_score + 0.25 * throughput_score), 2) if x["count"] else None
         # High workload per person only signals overload when paired with low progress and schedule risk.
         load_component = min(1, (x["per_person"] or 0) / max_load) if x["per_person"] is not None else 0.5
         progress_component = 1 - (x["mean"] or 0) / 100 if x["mean"] is not None else 0.5
-        risk = round(100 * (0.50 * load_component + 0.30 * progress_component + 0.20 * min(1, (x["overdue"] + x["potential"]) / max(1, x["count"]))), 1)
+        risk = round(100 * (0.50 * load_component + 0.30 * progress_component + 0.20 * min(1, (x["overdue"] + x["potential"]) / max(1, x["count"]))), 2)
         if x["count"] == 0: level = "Brak danych"
         elif risk >= 70: level = "Wysokie"
         elif risk >= 40: level = "Podwyższone"
         else: level = "Niskie"
-        out.append({"Jednostka": x["name"], "Liczba zadań": x["count"], "Personel": int(x["staff"]), "Zadania / osoba": round(x["per_person"], 3) if x["per_person"] is not None else None, "Średni postęp (%)": round(x["mean"], 1) if x["mean"] is not None else None, "Tempo (p.p./dzień)": round(x["pace"], 3) if x["count"] else None, "Wydajność (0–100)": efficiency, "Ryzyko przeciążenia": level, "Zadania opóźnione": x["overdue"], "Zadania z ryzykiem terminu": x["potential"], "_unit_id": x["id"], "_risk_score": risk, "_per_person": x["per_person"]})
+        out.append({"Jednostka": x["name"], "Liczba zadań": x["count"], "Personel": int(x["staff"]), "Zadania / osoba": round(x["per_person"], 2) if x["per_person"] is not None else None, "Średni postęp (%)": round(x["mean"], 2) if x["mean"] is not None else None, "Tempo (p.p./dzień)": round(x["pace"], 2) if x["count"] else None, "Wydajność (0–100)": efficiency, "Ryzyko przeciążenia": level, "Zadania opóźnione": x["overdue"], "Zadania z ryzykiem terminu": x["potential"], "_unit_id": x["id"], "_risk_score": risk, "_per_person": x["per_person"]})
     return sorted(out, key=lambda x: (-(x["_risk_score"] or 0), x["Jednostka"]))
 
 
-def recommend_support(rows: list[dict]) -> list[dict]:
-    eligible = [r for r in rows if r.get("Liczba zadań", 0) > 0 and r.get("Zadania / osoba") is not None and r.get("Wydajność (0–100)") is not None]
-    if len(eligible) < 2:
-        return []
-    high_eff = sorted(eligible, key=lambda r: (r["Wydajność (0–100)"], -(r["Zadania / osoba"] or 0)), reverse=True)
-    high_load = sorted(eligible, key=lambda r: ((r["Zadania / osoba"] or 0), -(r["_risk_score"] or 0)), reverse=True)
-    donors = [r for r in high_eff if r["Wydajność (0–100)"] >= 65 and (r["_risk_score"] or 0) < 45]
-    recipients = [r for r in high_load if (r["_risk_score"] or 0) >= 55 and r["Wydajność (0–100)"] < 65]
-    result = []
-    for recipient in recipients:
-        donor = next((d for d in donors if d["_unit_id"] != recipient["_unit_id"]), None)
-        if donor:
-            result.append({"Jednostka wymagająca wsparcia": recipient["Jednostka"], "Jednostka potencjalnie wspierająca": donor["Jednostka"], "Powód": f"Wyższe obciążenie ({recipient['Zadania / osoba']} zadań/os.) i ryzyko {recipient['_risk_score']}/100; jednostka wspierająca ma wydajność {donor['Wydajność (0–100)']}/100.", "Rekomendacja": "Zweryfikować możliwość czasowego wsparcia; nie przenosić automatycznie zadań ani personelu."})
-    return result
