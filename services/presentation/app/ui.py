@@ -512,190 +512,175 @@ def main():
         else: st.caption(f"Liczba jednostek z dostępną lokalizacją: {plotted}")
 
     with tab_analytics:
-        st.header("Analityk — historia i scenariusze postępu")
-        st.caption(
-            "Oddzielny moduł analityczny. Żądania przechodzą przez Presentation API i Access; "
-            "dane historyczne pochodzą z demonstracyjnego arkusza Excel, a nie z bieżących zadań operacyjnych."
+        from app.analytics_ui import (
+            leaf_tasks, top_level_tasks, task_status_band, estimate_task_duration, days_until,
+            unit_metrics, recommend_support, build_unit_task_rows,
         )
-        if is_national:
-            try:
-                op = get("/api/analytics/operational", person_id)
-                meta = op.get("meta", {})
-                st.caption(f"Dane demonstracyjne · stan na {meta.get('as_of', '—')} · {meta.get('tasks', 0)} zadań · {meta.get('units', 0)} jednostek")
-                st.info("Wskaźniki i historia są syntetyczne. Koszt zadania oznacza planowany koszt całkowity, nie zaksięgowane wydatki.")
-                view_plan, view_unit, view_other = st.tabs(["Plany nadrzędne → jednostki", "Jednostki → zadania", "Pozostałe analizy"])
-                with view_plan:
-                    st.subheader("Realizacja planów nadrzędnych")
-                    plan_rows = op.get("plan_progress", [])
-                    if plan_rows:
-                        pdf = pd.DataFrame([{"Plan": x.get("plan_name"), "Zadania": x.get("tasks",0), "Średni postęp (%)": round(float(x.get("mean_progress",0))*100,1), "Zakończone": x.get("completed",0), "Poniżej 50%": x.get("below_50pct",0), "Koszt planowany (zł)": x.get("total_task_cost",0), "Śr. czas (dni)": x.get("average_estimated_total_duration_days")} for x in plan_rows])
-                        st.dataframe(pdf, use_container_width=True, hide_index=True)
-                        st.bar_chart(pdf.set_index("Plan")[["Średni postęp (%)"]])
-                        selected_plan = st.selectbox("Rozwiń plan i zobacz jednostki", [x.get("plan_name", str(x.get("plan_id"))) for x in plan_rows], key="analysis_plan_detail")
-                        chosen = next((x for x in plan_rows if x.get("plan_name", str(x.get("plan_id"))) == selected_plan), {})
-                        related_units = [u for u in op.get("units", []) if any(t.get("plan_id") == chosen.get("plan_id") and t.get("unit_id") == u.get("unit_id") for t in op.get("task_durations", []))]
-                        if related_units:
-                            st.dataframe(pd.DataFrame([{"Jednostka":u.get("unit_name"),"Zadania":u.get("task_count"),"Postęp (%)":round(float(u.get("mean_progress") or 0)*100,1),"Tempo (pkt/dzień)":u.get("average_daily_progress"),"Obciążenie":u.get("personnel_demand_to_supply")} for u in related_units]), use_container_width=True, hide_index=True)
-                        else:
-                            plan_tasks = [t for t in op.get("task_durations",[]) if t.get("plan_id") == chosen.get("plan_id")]
-                            st.dataframe(pd.DataFrame(plan_tasks), use_container_width=True, hide_index=True)
-                with view_unit:
-                    st.subheader("Porównanie jednostek")
-                    unit_rows = op.get("units", [])
-                    if unit_rows:
-                        udf = pd.DataFrame([{"Jednostka":u.get("unit_name"),"Zadania":u.get("task_count",0),"Średni postęp (%)":round(float(u.get("mean_progress") or 0)*100,1),"Zadania / osoba":u.get("tasks_per_person"),"Wskaźnik przeciążenia":u.get("overload_score"),"Efektywność":u.get("efficiency_score")} for u in unit_rows])
-                        st.dataframe(udf, use_container_width=True, hide_index=True)
-                        st.bar_chart(udf.set_index("Jednostka")[["Średni postęp (%)"]])
-                        unit_names = {u.get("unit_name"):u.get("unit_id") for u in unit_rows}
-                        selected_unit_name = st.selectbox("Szczegóły jednostki", list(unit_names), key="analysis_unit_detail")
-                        selected_unit_id = unit_names[selected_unit_name]
-                        unit_tasks = [t for t in op.get("task_durations",[]) if t.get("unit_id") == selected_unit_id]
-                        if unit_tasks:
-                            st.caption(f"Zadania jednostki: {selected_unit_name}")
-                            st.dataframe(pd.DataFrame([{"Zadanie":t.get("task_name",t.get("task_id")),"Plan":t.get("plan_id"),"Postęp (%)":round(float(t.get("current_progress",0))*100,1),"Upływ (dni)":t.get("elapsed_days"),"Szacowany czas całości (dni)":t.get("estimated_total_duration_days"),"Koszt (zł)":t.get("cost")} for t in unit_tasks]), use_container_width=True, hide_index=True)
-                        benchmarks = op.get("same_task_unit_benchmarks", [])
-                        if benchmarks:
-                            st.subheader("To samo zadanie w różnych jednostkach")
-                            st.dataframe(pd.DataFrame(benchmarks), use_container_width=True, hide_index=True)
-                with view_other:
-                    st.subheader("Obciążenie, kadry i wąskie gardła")
-                    staffing = op.get("staffing_relationship", {})
-                    m1,m2,m3 = st.columns(3)
-                    m1.metric("Jednostki w analizie kadrowej", staffing.get("unit_count_used",0))
-                    m2.metric("Korelacja: personel / postęp", staffing.get("pearson_staff_vs_mean_progress") if staffing.get("pearson_staff_vs_mean_progress") is not None else "—")
-                    m3.metric("Korelacja: zadania/osoba / postęp", staffing.get("pearson_tasks_per_person_vs_mean_progress") if staffing.get("pearson_tasks_per_person_vs_mean_progress") is not None else "—")
-                    st.caption(staffing.get("interpretation", "Korelacje są opisowe i nie dowodzą przyczynowości."))
-                    for title, key in [("Jednostki z ryzykiem przeciążenia","bottlenecks"),("Najwyższa efektywność","efficient_units"),("Ryzyko budżetowe","budget_risks")]:
-                        st.markdown(f"#### {title}")
-                        rows = op.get(key, [])
-                        if rows: st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-                        else: st.caption("Brak rekordów dla tego kryterium.")
-                    extra = op.get("additional_analyses", {})
-                    funnel = extra.get("completion_funnel", {})
-                    st.markdown("#### Lejek realizacji i stagnacja")
-                    cols = st.columns(5)
-                    for col, label, key in zip(cols,["Wszystkie","Zakończone","W toku","Nierozpoczęte","Stagnujące"],["total","completed","in_progress","not_started","stagnating_last_7_intervals"]): col.metric(label, funnel.get(key,0))
-                    for title,key in [("Zadania zagrożone","at_risk_tasks"),("Zadania stagnujące","stagnating_tasks"),("Zadania bez przypisanej jednostki","unassigned_tasks")]:
-                        st.markdown(f"#### {title}")
-                        rows=extra.get(key,[])
-                        if rows: st.dataframe(pd.DataFrame(rows),use_container_width=True,hide_index=True)
-                        else: st.caption("Brak rekordów.")
-            except Exception as exc:
-                st.error(f"Nie udało się pobrać analiz operacyjnych: {exc}")
-                st.caption("Sprawdź serwisy presentation, access i analytics-history.")
-            st.divider()
-            st.subheader("Historia i scenariusze postępu")
+        st.header("Analizy realizacji zadań")
+        st.caption("Zakres danych jest ograniczony przez Access do planów, jednostek i zadań widocznych dla wybranego konta. Analiza nie rozszerza uprawnień użytkownika.")
+
+        # The national account can inspect the full hierarchy returned by Access.
+        # Unit accounts see only their own authorized subtree and tasks returned by Access.
+        all_visible_units = list(units)
+        all_visible_plans = list(plans)
+        all_visible_tasks = list(tasks)
+        unit_map = {str(u.get("id")): u for u in all_visible_units}
+        plan_map = {str(p.get("id_planu")): p for p in all_visible_plans}
+        plan_owner = {str(pid): str(u.get("id")) for u in all_visible_units for pid in (u.get("id_planow") or [])}
+
+        def descendants_in_scope(root_id):
+            root_id = str(root_id)
+            found, seen = [], {root_id}
+            changed = True
+            while changed:
+                changed = False
+                for candidate in all_visible_units:
+                    cid = str(candidate.get("id"))
+                    parent = str(candidate.get("id_jednostki_nadrzednej") or "")
+                    if cid not in seen and parent in seen:
+                        seen.add(cid); found.append(candidate); changed = True
+            return found
+
+        if is_national and selected_scope == NATIONAL_SCOPE:
+            scope_units = all_visible_units
+            scope_label = "Zakres krajowy — wszystkie jednostki dostępne dla konta"
         else:
-            st.info("Analizy zbiorcze są dostępne wyłącznie w perspektywie krajowej. Widok jednostkowy nie otrzymuje danych globalnych.")
-
-        if not is_national:
-            st.info(
-                "Ten demonstrator analityki historycznej nie zawiera mapowania zadań na jednostki. "
-                "Z tego powodu zagregowane wyniki globalne są dostępne wyłącznie w perspektywie krajowej "
-                "(Premier), aby nie ujawniać danych spoza zakresu jednostki."
-            )
+            root_id = str(selected_scope if is_national else own_unit_id)
+            root_unit = unit_map.get(root_id)
+            scope_units = ([root_unit] if root_unit else []) + descendants_in_scope(root_id)
+            scope_label = root_unit.get("nazwa", "Zakres jednostki") if root_unit else "Zakres jednostki"
+        scope_ids = {str(u.get("id")) for u in scope_units}
+        scope_plan_ids = {str(pid) for u in scope_units for pid in (u.get("id_planow") or [])}
+        scope_tasks = []
+        for task in all_visible_tasks:
+            pid = str(task.get("id_planu", ""))
+            if pid not in plan_map:
+                continue
+            assigned_ids = {str(x) for x in (task.get("id_jednostek") or [])}
+            owner_id = plan_owner.get(pid, "")
+            if (assigned_ids & scope_ids) or (not assigned_ids and owner_id in scope_ids):
+                scope_tasks.append(task)
+        # Count only terminal tasks in a hierarchy, so parent tasks with children do not double-count.
+        analyzed_tasks = leaf_tasks(scope_tasks)
+        st.markdown(f"**Zakres:** {scope_label} · **Zadań na najniższym poziomie:** {len(analyzed_tasks)} · **Jednostek:** {len(scope_units)}")
+        if not analyzed_tasks:
+            st.info("W zakresie widocznym dla tego konta nie ma zadań do analizy.")
         else:
-            try:
-                snapshots_payload = get("/api/analytics/history/snapshots", person_id)
-                snapshots = snapshots_payload.get("snapshots", [])
-                if not snapshots:
-                    st.warning("Brak snapshotów historycznych. Sprawdź inicjalizację serwisu analytics-history.")
-                else:
-                    snapshot_ids = [str(x["snapshot_id"]) for x in snapshots]
-                    selected_snapshot = st.selectbox(
-                        "Snapshot do podsumowania", snapshot_ids,
-                        index=snapshot_ids.index("D+2") if "D+2" in snapshot_ids else len(snapshot_ids)-1,
-                        key="analytics_snapshot",
-                    )
-                    summary = get(
-                        f"/api/analytics/history/summary?snapshot_id={quote(selected_snapshot, safe="")}",
-                        person_id,
-                    )
-                    k1, k2, k3, k4 = st.columns(4)
-                    k1.metric("Zadania w próbce", summary.get("tasks", 0))
-                    k2.metric("Średni postęp", f"{float(summary.get('mean_progress', 0))*100:.1f}%")
-                    k3.metric("Zakończone", summary.get("completed_tasks", 0))
-                    k4.metric("Niezakończone", summary.get("incomplete_tasks", 0))
-                    st.caption(summary.get("data_note", "Dane demonstracyjne."))
+            import json as _json
+            # 1. Task status distribution, exclusive bands: each leaf task counts once.
+            st.subheader("1. Struktura realizacji zadań")
+            bands = ["Nierozpoczęte", "Rozpoczęte: 0–25%", "Realizacja: 25–50%", "Realizacja: 50–75%", "Realizacja: 75–99,9%", "Zakończone"]
+            colors = ["#F59E0B", "#A7F3D0", "#6EE7B7", "#34D399", "#059669", "#2563EB"]
+            counts = {band: 0 for band in bands}
+            for task in analyzed_tasks:
+                counts[task_status_band(task)] += 1
+            chart_data = [{"status": band, "liczba": counts[band]} for band in bands if counts[band] > 0]
+            c1, c2 = st.columns([1.2, 1])
+            with c1:
+                st.vega_lite_chart(chart_data, {
+                    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                    "description": "Udział zadań na najniższym poziomie hierarchii według postępu.",
+                    "mark": {"type": "arc", "innerRadius": 48, "stroke": "#ffffff", "strokeWidth": 1},
+                    "encoding": {
+                        "theta": {"field": "liczba", "type": "quantitative"},
+                        "color": {"field": "status", "type": "nominal", "scale": {"domain": bands, "range": colors}, "legend": {"title": "Status realizacji", "orient": "right"}},
+                        "tooltip": [{"field": "status", "type": "nominal", "title": "Status"}, {"field": "liczba", "type": "quantitative", "title": "Liczba zadań"}]
+                    }
+                }, use_container_width=True)
+            with c2:
+                st.dataframe(pd.DataFrame([{"Status": b, "Liczba zadań": counts[b], "Udział (%)": round(100*counts[b]/len(analyzed_tasks), 1)} for b in bands]), use_container_width=True, hide_index=True)
+                st.caption("Zadanie nadrzędne jest pomijane w podsumowaniu, jeśli ma podzadania. Każde zadanie końcowe liczy się tylko raz.")
 
-                    by_type = summary.get("by_type", {})
-                    if by_type:
-                        st.subheader("Postęp według typu zadania")
-                        type_rows = [
-                            {"Typ": typ, "Liczba zadań": val.get("tasks", 0),
-                             "Średni postęp (%)": round(float(val.get("mean_progress", 0))*100, 1),
-                             "Zakończone": val.get("completed_tasks", 0)}
-                            for typ, val in sorted(by_type.items())
-                        ]
-                        st.dataframe(pd.DataFrame(type_rows), use_container_width=True, hide_index=True)
-                        st.bar_chart(pd.DataFrame(type_rows).set_index("Typ")[["Średni postęp (%)"]])
+            # 2. Time, due date, duration prediction and delay risk.
+            st.subheader("2. Czas realizacji i ryzyko terminu")
+            st.caption("Tabela pokazuje najwyższy widoczny poziom zadania, żeby nie dublować zadania nadrzędnego i podzadań. Prognoza wykorzystuje tempo postępu od utworzenia zadania. Jeśli w danych brakuje daty lub terminu, UI nie zgaduje wartości.")
+            unit_names = {str(u.get("id")): u.get("nazwa", str(u.get("id"))) for u in scope_units}
+            # For the time table show the highest visible level; leaf-only tasks are used for all aggregates.
+            duration_tasks = top_level_tasks(scope_tasks)
+            task_rows = build_unit_task_rows(duration_tasks, plan_map, unit_names, owner_by_plan=plan_owner)
+            task_df = pd.DataFrame(task_rows)
+            def highlight_delay(row):
+                status = row.get("Opóźnienie")
+                color = "background-color: #fee2e2; color: #991b1b" if status == "Opóźnione" else ("background-color: #ffedd5; color: #9a3412" if status == "Potencjalne" else "")
+                return [color if col == "Opóźnienie" else "" for col in row.index]
+            st.dataframe(task_df.style.apply(highlight_delay, axis=1), use_container_width=True, hide_index=True, column_config={
+                "Opóźnienie": st.column_config.TextColumn("Opóźnienie", help="Brak / Potencjalne / Opóźnione. Ocena terminowości wymaga terminu końcowego w danych."),
+                "Termin realizacji": st.column_config.TextColumn("Termin realizacji"),
+                "Prognoza: pozostało (dni)": st.column_config.NumberColumn("Prognoza: pozostało (dni)", format="%.1f"),
+            })
 
-                    st.divider()
-                    st.subheader("Zmiany między snapshotami")
-                    c1, c2 = st.columns(2)
-                    from_snapshot = c1.selectbox("Od", snapshot_ids, index=0, key="analytics_from")
-                    to_snapshot = c2.selectbox(
-                        "Do", snapshot_ids,
-                        index=snapshot_ids.index("D+2") if "D+2" in snapshot_ids else len(snapshot_ids)-1,
-                        key="analytics_to",
-                    )
-                    if from_snapshot == to_snapshot:
-                        st.info("Wybierz dwa różne snapshoty, aby porównać zmianę.")
-                    else:
-                        changes = get(
-                            f"/api/analytics/history/changes?from_snapshot={quote(from_snapshot, safe="")}&to_snapshot={quote(to_snapshot, safe="")}&limit=5000",
-                            person_id,
-                        )
-                        change_rows = changes.get("changes", [])
-                        st.metric("Porównane zadania", changes.get("count", len(change_rows)))
-                        if change_rows:
-                            change_df = pd.DataFrame([{
-                                "ID zadania": x.get("task_id"),
-                                "Typ": x.get("task_type"),
-                                "Postęp przed (%)": round(float(x.get("progress_before", 0))*100, 1),
-                                "Postęp po (%)": round(float(x.get("progress_after", 0))*100, 1),
-                                "Zmiana (p.p.)": x.get("change_pp", 0),
-                                "Zmiana względna (%)": x.get("relative_change_pct"),
-                            } for x in change_rows])
-                            st.dataframe(change_df, use_container_width=True, hide_index=True)
-                        else:
-                            st.info("Brak porównywalnych rekordów.")
+            # 3. Unit capacity and efficiency, only for units in this user's authorized scope.
+            st.subheader("3. Możliwości jednostek i obciążenie")
+            unit_rows = unit_metrics(scope_units, analyzed_tasks, plan_owner)
+            if unit_rows:
+                unit_df = pd.DataFrame(unit_rows).drop(columns=[c for c in ["_unit_id", "_risk_score", "_per_person"] if c in pd.DataFrame(unit_rows).columns])
+                def highlight_unit_risk(row):
+                    styles = [""] * len(row)
+                    if row.get("Ryzyko przeciążenia") == "Wysokie":
+                        styles = ["background-color: #fee2e2; color: #991b1b"] * len(row)
+                    elif row.get("Ryzyko przeciążenia") == "Podwyższone":
+                        styles = ["background-color: #ffedd5; color: #9a3412"] * len(row)
+                    elif row.get("Wydajność (0–100)") is not None and row.get("Wydajność (0–100)") < 30:
+                        styles = ["background-color: #fee2e2; color: #991b1b"] * len(row)
+                    return styles
+                st.dataframe(unit_df.style.apply(highlight_unit_risk, axis=1), use_container_width=True, hide_index=True, column_config={
+                    "Wydajność (0–100)": st.column_config.ProgressColumn("Wydajność (0–100)", min_value=0, max_value=100, format="%.1f", help="Wynik porównawczy łączący tempo, postęp i obciążenie zadaniami na osobę."),
+                    "Ryzyko przeciążenia": st.column_config.TextColumn("Ryzyko przeciążenia"),
+                })
+                chart_cols = st.columns([1.4, 1])
+                with chart_cols[0]:
+                    st.markdown("**Postęp i wydajność jednostek**")
+                    st.bar_chart(pd.DataFrame(unit_rows).set_index("Jednostka")[["Średni postęp (%)", "Wydajność (0–100)"]], use_container_width=True)
+                with chart_cols[1]:
+                    st.markdown("**Zadania na pracownika**")
+                    st.bar_chart(pd.DataFrame(unit_rows).set_index("Jednostka")[["Zadania / osoba"]].fillna(0), use_container_width=True)
+                valid_corr = pd.DataFrame(unit_rows)[["Personel", "Średni postęp (%)", "Zadania / osoba"]].dropna()
+                if len(valid_corr) >= 3:
+                    corr = valid_corr.corr(numeric_only=True).loc["Personel", "Średni postęp (%)"]
+                    st.metric("Korelacja: personel ↔ postęp", f"{corr:.2f}", help="Korelacja Pearsona na poziomie jednostek widocznych w wybranym zakresie; nie oznacza przyczynowości.")
+                st.caption("Wydajność jest względnym wskaźnikiem porównawczym w obrębie aktualnie widocznego zakresu. Niski wynik oznaczono na czerwono, a wysokie ryzyko przeciążenia na czerwono lub pomarańczowo. To heurystyka, nie miara jakości pracy.")
 
-                    st.divider()
-                    st.subheader("Scenariusz postępu")
-                    st.warning(
-                        "To ilustracyjna ekstrapolacja liniowa oparta na dwóch snapshotach oddalonych o dwa dni. "
-                        "Nie jest zwalidowaną prognozą i nie powinna służyć jako samodzielna podstawa decyzji."
-                    )
-                    fc1, fc2 = st.columns(2)
-                    base_snapshot = fc1.selectbox(
-                        "Snapshot bazowy", snapshot_ids,
-                        index=snapshot_ids.index("D+2") if "D+2" in snapshot_ids else len(snapshot_ids)-1,
-                        key="analytics_forecast_base",
-                    )
-                    days_ahead = fc2.number_input("Horyzont (dni)", min_value=1, max_value=30, value=2, step=1)
-                    if st.button("Uruchom scenariusz", type="primary", key="run_analytics_forecast"):
-                        result = post(
-                            "/api/analytics/simulations/progress", person_id,
-                            {"base_snapshot_id": base_snapshot, "days_ahead": int(days_ahead)},
-                        )
-                        st.session_state["analytics_last_forecast"] = result
-                    forecast = st.session_state.get("analytics_last_forecast")
-                    if forecast:
-                        st.caption(
-                            f"Metoda: {forecast.get('method')} · liczba wyników: {forecast.get('results_count', 0)}"
-                        )
-                        forecast_rows = [{
-                            "ID zadania": x.get("task_id"), "Typ": x.get("task_type"),
-                            "Postęp bazowy (%)": round(float(x.get("base_progress", 0))*100, 1),
-                            "Postęp scenariusza (%)": round(float(x.get("forecast_progress", 0))*100, 1),
-                            "Zmiana (p.p.)": x.get("forecast_change_pp", 0),
-                        } for x in forecast.get("results", [])]
-                        if forecast_rows:
-                            st.dataframe(pd.DataFrame(forecast_rows), use_container_width=True, hide_index=True)
-                        st.caption(forecast.get("warning", ""))
-            except Exception as exc:
-                st.error(f"Nie udało się wykonać analizy przez warstwę dostępową: {exc}")
-                st.caption("Sprawdź serwisy presentation, access oraz analytics-history.")
+            # 4. Compare common task titles across authorized units. Analysis-only copies are excluded.
+            st.subheader("4. To samo zadanie w różnych jednostkach")
+            by_name = defaultdict(list)
+            for task in analyzed_tasks:
+                assigned = {str(x) for x in (task.get("id_jednostek") or [])}
+                uid = next(iter(assigned & scope_ids), plan_owner.get(str(task.get("id_planu", "")), ""))
+                if uid in scope_ids:
+                    by_name[str(task.get("nazwa_zadania") or task.get("id_zadania"))].append((task, uid))
+            comparisons = []
+            for task_name, group in by_name.items():
+                unique_units = {uid for _, uid in group}
+                if len(unique_units) < 2:
+                    continue
+                for task, uid in group:
+                    staff = float((unit_map.get(uid, {}).get("zasoby") or {}).get("personel") or 0)
+                    created = str(task.get("data_utworzenia") or "")[:10]
+                    try: elapsed = max(0, (date.today() - date.fromisoformat(created)).days)
+                    except ValueError: elapsed = None
+                    pct = clamp_progress(task) * 100
+                    duration = estimate_task_duration(task)
+                    pace = (pct / elapsed) if elapsed and elapsed > 0 else None
+                    comparisons.append({"Zadanie": task_name, "Jednostka": unit_names.get(uid, uid), "Postęp (%)": round(pct,1), "Czas od utworzenia (dni)": elapsed, "Prognoza: pozostało (dni)": duration["remaining_days"], "Tempo (p.p./dzień)": round(pace, 3) if pace is not None else None, "Personel jednostki": int(staff), "Zadania / osoba": round(sum(1 for t in analyzed_tasks if (plan_owner.get(str(t.get("id_planu", "")), "") == uid)) / staff, 3) if staff else None})
+            if comparisons:
+                st.dataframe(pd.DataFrame(comparisons), use_container_width=True, hide_index=True)
+                st.caption("Porównanie obejmuje tylko nazwy zadań powtarzające się w rzeczywistych danych widocznych dla konta. Kopie syntetyczne nie są używane w tym widoku.")
+            else:
+                st.info("W tym zakresie nie znaleziono identycznie nazwanych zadań przypisanych do co najmniej dwóch jednostek. Nie zastępujemy braku danych syntetycznymi kopiami w tym raporcie.")
+
+            # 5. Suggestions for rebalancing, grounded in visible unit data.
+            st.subheader("5. Sugestie wsparcia między jednostkami")
+            suggestions = recommend_support(unit_rows)
+            if suggestions:
+                st.dataframe(pd.DataFrame(suggestions), use_container_width=True, hide_index=True)
+                st.caption("To propozycje do weryfikacji przez koordynatora. Wskaźnik nie przenosi automatycznie personelu ani odpowiedzialności za zadania.")
+            else:
+                st.info("Brak wystarczających danych, aby wskazać bezpieczną sugestię przesunięcia wsparcia.")
+
+            with st.expander("Ograniczenia i jakość danych"):
+                st.write("- W bieżącym modelu zadań nie ma jawnych pól terminu końcowego ani relacji rodzic–podzadanie. UI obsługuje takie pola, jeśli zostaną dodane, ale obecnie nie może ich wiarygodnie odtworzyć.")
+                st.write("- Gdy brak terminu końcowego, opóźnienie nie jest zgadywane. W tabeli pojawia się informacja o braku terminu.")
+                st.write("- Wskaźniki kadrowe i efektywnościowe są heurystykami, a nie oceną jakości pracy jednostek.")
+                st.write("- Wszystkie agregacje wykorzystują tylko dane zwrócone przez API po kontroli dostępu.")
 
 if __name__ == "__main__": main()
