@@ -14,13 +14,14 @@ PEOPLE = {
 }
 UNITS = [
     {"id": "U-PRM", "nazwa": "Prezes Rady Ministrów", "id_jednostki_nadrzednej": None, "id_planow": [], "id_regionu": "PL-00", "pracownicy": [], "zasoby": {}},
-    {"id": "U-MSWIA", "nazwa": "MSWiA", "id_jednostki_nadrzednej": "U-PRM", "id_planow": [], "id_regionu": "PL-00", "pracownicy": [], "zasoby": {}},
+    {"id": "U-MSWIA", "nazwa": "MSWiA", "id_jednostki_nadrzednej": "U-PRM", "id_planow": ["PRM-CHILD"], "id_regionu": "PL-00", "pracownicy": [], "zasoby": {}},
     {"id": "U-KGP", "nazwa": "Komenda Główna Policji", "id_jednostki_nadrzednej": "U-MSWIA", "id_planow": ["ORP", "PP"], "id_regionu": "PL-00", "pracownicy": [], "zasoby": {}},
     {"id": "U-KWP", "nazwa": "Komenda Wojewódzka Policji", "id_jednostki_nadrzednej": "U-KGP", "id_planow": [], "id_regionu": "PL-MZ", "pracownicy": [], "zasoby": {}},
     {"id": "U-KGPSP", "nazwa": "Komenda Główna PSP", "id_jednostki_nadrzednej": "U-MSWIA", "id_planow": ["ORS", "PS"], "id_regionu": "PL-00", "pracownicy": [], "zasoby": {}},
     {"id": "U-KWPSP", "nazwa": "Komenda Wojewódzka PSP", "id_jednostki_nadrzednej": "U-KGPSP", "id_planow": [], "id_regionu": "PL-MZ", "pracownicy": [], "zasoby": {}},
 ]
 PLANS = [
+    {"id_planu": "PRM-CHILD", "id_planu_nadrzednego": None, "nazwa_dokumentu": "Plan MSWiA", "klauzula_tajnosci": "tajne", "status_planu": "approved", "status_operacyjny": "inactive"},
     {"id_planu": "ORP", "id_planu_nadrzednego": None, "nazwa_dokumentu": "Plan Policji", "klauzula_tajnosci": "tajne"},
     {"id_planu": "ORPP", "id_planu_nadrzednego": "ORP", "nazwa_dokumentu": "Plan wojewódzki Policji", "klauzula_tajnosci": "tajne"},
     {"id_planu": "ORS", "id_planu_nadrzednego": None, "nazwa_dokumentu": "Plan PSP", "klauzula_tajnosci": "zastrzezone"},
@@ -109,3 +110,16 @@ def test_premier_demo_account_can_see_all_units_plans_and_tasks(monkeypatch):
     assert len(c.get("/units", headers=headers).json()) == len(UNITS)
     assert len(c.get("/plans", headers=headers).json()) == len(PLANS)
     assert {t["id_zadania"] for t in c.get("/tasks", headers=headers).json()} == {"POL-1", "POL-2", "PSP-1", "PSP-2"}
+
+
+def test_premier_can_activate_plan_owned_by_direct_subordinate(monkeypatch):
+    c = client(monkeypatch)
+    called = {}
+    async def fake_mutate(method, path, payload):
+        called["method"], called["path"], called["payload"] = method, path, payload
+        return {"ok": True}
+    monkeypatch.setattr(access, "data_mutate", fake_mutate)
+    response = c.post("/plans/PRM-CHILD/activate", headers={"X-Person-Id": "demo-premier"})
+    assert response.status_code == 200
+    assert called["path"] == "/plans/PRM-CHILD/activate"
+    assert called["payload"]["activated_by"] == "demo-premier"

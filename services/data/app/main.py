@@ -1,9 +1,9 @@
 import json
 import os
+import re
 import sqlite3
 from contextlib import contextmanager
-from datetime import date, datetime, timedelta, timezone
-import random
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from pydantic import BaseModel, Field
@@ -20,7 +20,8 @@ class TaskProgressUpdate(BaseModel):
 
 
 class PlanCreate(BaseModel):
-    id_planu: str = Field(min_length=2, max_length=64)
+    # Root plans use one uppercase letter; child plans append one letter to parent code.
+    id_planu: str = Field(min_length=1, max_length=64)
     nazwa_dokumentu: str = Field(min_length=3, max_length=240)
     sporzadzil: str = Field(min_length=1, max_length=160)
     id_jednostki_wlasciciela: str = Field(min_length=1, max_length=128)
@@ -31,6 +32,14 @@ class PlanCreate(BaseModel):
     zadania: list[dict[str, Any]] = Field(default_factory=list)
     wymogi: list[dict[str, Any]] = Field(default_factory=list)
     zapis_roboczy: bool = False
+
+
+
+class TaskCreate(BaseModel):
+    id_zadania: str | None = Field(default=None, min_length=1, max_length=128)
+    nazwa_zadania: str = Field(min_length=3, max_length=240)
+    typ_zadania: str = "PRZ"
+    klauzula_tajnosci: str | None = None
 
 class PlanRequirementsUpdate(BaseModel):
     wymogi: list[dict[str, Any]]
@@ -111,7 +120,6 @@ def init_db() -> None:
             zasoby_json TEXT NOT NULL DEFAULT '{}',
             klauzula_tajnosci TEXT NOT NULL DEFAULT 'scisle_tajne',
             typ_zadania TEXT NOT NULL DEFAULT 'REAL',
-            termin_realizacji TEXT NULL,
             PRIMARY KEY (id_planu, id_zadania)
         );
         CREATE TABLE IF NOT EXISTS people (
@@ -144,7 +152,6 @@ def init_db() -> None:
             ("units", "pracownicy_json", "TEXT NOT NULL DEFAULT '[]'"),
             ("tasks", "klauzula_tajnosci", "TEXT NOT NULL DEFAULT 'scisle_tajne'"),
             ("tasks", "typ_zadania", "TEXT NOT NULL DEFAULT 'REAL'"),
-            ("tasks", "termin_realizacji", "TEXT NULL"),
             ("unit_cooperation", "sharing_level", "TEXT NOT NULL DEFAULT 'details'"),
         ]:
             existing = {r[1] for r in conn.execute(f"PRAGMA table_info({table})").fetchall()}
@@ -176,12 +183,12 @@ def init_db() -> None:
                     json.dumps(u.get("pracownicy", []), ensure_ascii=False)
                 ))
             for t in seed.get("tasks", []):
-                conn.execute("""INSERT INTO tasks (id_planu,id_zadania,id_jednostek_json,nazwa_zadania,data_utworzenia,data_aktualizacji,status,poziom_realizacji,koszt,zasoby_json,klauzula_tajnosci,termin_realizacji) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
+                conn.execute("""INSERT INTO tasks (id_planu,id_zadania,id_jednostek_json,nazwa_zadania,data_utworzenia,data_aktualizacji,status,poziom_realizacji,koszt,zasoby_json,klauzula_tajnosci) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
                     t["id_planu"], t["id_zadania"], json.dumps(t.get("id_jednostek", []), ensure_ascii=False),
                     t["nazwa_zadania"], t["data_utworzenia"], t["data_aktualizacji"],
                     int(bool(t.get("status", False))), float(t.get("poziom_realizacji", 0)),
                     float(t.get("koszt", 0)), json.dumps(t.get("zasoby", {}), ensure_ascii=False),
-                    t.get("klauzula_tajnosci", "jawne"), t.get("termin_realizacji")
+                    t.get("klauzula_tajnosci", "jawne")
                 ))
             # Optional employee seed; when omitted, create one clearly labelled demo account per unit.
             people_seed = seed.get("people", [])
@@ -203,31 +210,29 @@ def init_db() -> None:
             for relation in seed.get("wspolpraca", []):
                 conn.execute("INSERT OR IGNORE INTO unit_cooperation (unit_id,partner_unit_id,sharing_level) VALUES (?,?,?)",
                              (str(relation["unit_id"]), str(relation["partner_unit_id"]), relation.get("sharing_level", "details")))
-        # Synthetic demo deadlines: fill only missing values in older persistent databases.
-        # These dates are illustrative test data, not official operational deadlines.
-        missing_deadlines = conn.execute(
-            "SELECT id_planu,id_zadania FROM tasks WHERE termin_realizacji IS NULL OR termin_realizacji=''"
-            " ORDER BY id_planu,id_zadania"
-        ).fetchall()
-        if missing_deadlines:
-            deadline_rng = random.Random(20261010)
-            indices = list(range(len(missing_deadlines)))
-            deadline_rng.shuffle(indices)
-            urgent = set(indices[:min(12, len(indices))])
-            annual = set(indices[12:24])
-            past = set(indices[24:32])
-            today = date.today()
-            for i, row in enumerate(missing_deadlines):
-                if i in urgent:
-                    due = today + timedelta(days=deadline_rng.randint(1, 7))
-                elif i in annual:
-                    due = date(today.year + 1, deadline_rng.randint(1, 12), 1) + timedelta(days=deadline_rng.randint(0, 27))
-                elif i in past:
-                    due = today - timedelta(days=deadline_rng.randint(1, 35))
-                else:
-                    due = today + timedelta(days=deadline_rng.randint(12, 75))
-                conn.execute("UPDATE tasks SET termin_realizacji=? WHERE id_planu=? AND id_zadania=?",
-                             (due.isoformat(), row["id_planu"], row["id_zadania"]))
+        # Organizational model migration: the Prime Minister belongs to the national
+        # coordination node. KPRM is not represented as a second unit in this PoC.
+        # Apply on every startup so an existing named Docker volume is upgraded too.
+        prm_exists = conn.execute("SELECT 1 FROM units WHERE id='U-PRM'").fetchone()
+        kprm_exists = conn.execute("SELECT 1 FROM units WHERE id='U-KPRM'").fetchone()
+        if prm_exists:
+            # Synthetic PoC coordination budget; repair legacy databases where it was seeded as 0.
+            conn.execute("UPDATE units SET budzet=50000000 WHERE id='U-PRM' AND COALESCE(budzet, 0)=0")
+            prm_row = conn.execute("SELECT id_planow_json FROM units WHERE id='U-PRM'").fetchone()
+            prm_plans = json.loads(prm_row['id_planow_json'] or '[]')
+            if 'O' not in prm_plans:
+                prm_plans.append('O')
+            conn.execute("UPDATE units SET id_planow_json=? WHERE id='U-PRM'", (json.dumps(prm_plans, ensure_ascii=False),))
+            conn.execute("UPDATE units SET id_planow_json=? WHERE id='U-KPRM'", (json.dumps([], ensure_ascii=False),))
+            conn.execute("UPDATE plans SET sporzadzil=?, zatwierdzajacy=? WHERE id_planu='O'",
+                         ('Prezes Rady Ministrów / Rada Ministrów — węzeł koordynacyjny PoC',
+                          'Prezes Rady Ministrów / Rada Ministrów — węzeł koordynacyjny PoC'))
+        if kprm_exists:
+            # Preserve foreign-key integrity while retiring any legacy demo identity.
+            conn.execute("UPDATE people SET id_jednostki='U-PRM', aktywna=0 WHERE id_jednostki='U-KPRM'")
+            conn.execute("DELETE FROM units WHERE id='U-KPRM'")
+        # Active plans are one-way operational lifecycle objects: completion of their
+        # tasks never changes the plan's active state.
         # Classify tasks explicitly. Legacy IDs are used only for the one-time PoC migration;
         # all API consumers use the persisted typ_zadania field afterwards.
         conn.execute("UPDATE tasks SET typ_zadania = CASE WHEN upper(id_zadania) LIKE 'PRZ-%' THEN 'PRZ' ELSE 'REAL' END")
@@ -363,8 +368,12 @@ def create_plan(request: PlanCreate):
             raise HTTPException(404, "Owning unit not found")
         if conn.execute("SELECT 1 FROM plans WHERE id_planu=?", (request.id_planu,)).fetchone():
             raise HTTPException(409, "Plan identifier already exists")
-        if request.id_planu_nadrzednego and not conn.execute("SELECT 1 FROM plans WHERE id_planu=?", (request.id_planu_nadrzednego,)).fetchone():
-            raise HTTPException(404, "Parent plan not found")
+        if request.id_planu_nadrzednego:
+            parent = conn.execute("SELECT id_planu FROM plans WHERE id_planu=?", (request.id_planu_nadrzednego,)).fetchone()
+            if not parent:
+                raise HTTPException(404, "Parent plan not found")
+            if not re.fullmatch(re.escape(request.id_planu_nadrzednego) + r"[A-Z]", request.id_planu):
+                raise HTTPException(422, "Plan code must be the parent plan code followed by exactly one uppercase letter")
         conn.execute("INSERT INTO plans (id_planu,id_planu_nadrzednego,nazwa_dokumentu,sporzadzil,uzgadnial_json,komentarz,data_utworzenia,status_planu,klauzula_tajnosci,status_operacyjny,data_przegladu,wymogi_json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
             (request.id_planu, request.id_planu_nadrzednego, request.nazwa_dokumentu, request.sporzadzil, "[]", request.komentarz, now, "editing" if request.zapis_roboczy else "draft", request.klauzula_tajnosci, "prepared", request.data_przegladu, json.dumps(request.wymogi, ensure_ascii=False)))
         owner_data = unit_dict(owner)
@@ -409,8 +418,12 @@ def update_plan(plan_id: str, request: PlanCreate):
         owner = conn.execute("SELECT * FROM units WHERE id=?", (request.id_jednostki_wlasciciela,)).fetchone()
         if owner is None:
             raise HTTPException(404, "Owning unit not found")
-        if request.id_planu_nadrzednego and not conn.execute("SELECT 1 FROM plans WHERE id_planu=?", (request.id_planu_nadrzednego,)).fetchone():
-            raise HTTPException(404, "Parent plan not found")
+        if request.id_planu_nadrzednego:
+            parent = conn.execute("SELECT id_planu FROM plans WHERE id_planu=?", (request.id_planu_nadrzednego,)).fetchone()
+            if not parent:
+                raise HTTPException(404, "Parent plan not found")
+            if not re.fullmatch(re.escape(request.id_planu_nadrzednego) + r"[A-Z]", request.id_planu):
+                raise HTTPException(422, "Plan code must be the parent plan code followed by exactly one uppercase letter")
         next_status = current["status_planu"]
         if current["status_planu"] == "editing":
             next_status = "editing" if request.zapis_roboczy else "draft"
@@ -566,6 +579,46 @@ def activate_plan(plan_id: str, request: PlanActivation):
         conn.execute("INSERT INTO plan_activation_audit(root_plan_id,affected_plan_ids_json,activated_by,activated_at) VALUES (?,?,?,?)",
                      (plan_id, json.dumps(affected), request.activated_by, activated_at))
     return {"root_plan_id": plan_id, "activated_plan_ids": affected, "activated_at": activated_at, "activated_by": request.activated_by}
+
+
+
+
+@app.post("/plans/{plan_id}/tasks", status_code=201)
+def create_task(plan_id: str, request: TaskCreate):
+    """Add one task to an existing plan without rewriting its other tasks."""
+    name = request.nazwa_zadania.strip()
+    if len(name) < 3:
+        raise HTTPException(422, "Task name must contain at least 3 characters")
+    typ = "PRZ" if request.typ_zadania == "PRZ" else "REAL" if request.typ_zadania == "REAL" else None
+    if typ is None:
+        raise HTTPException(422, "Unknown task type")
+    now = datetime.now(timezone.utc).date().isoformat()
+    with db() as conn:
+        plan = conn.execute("SELECT id_planu, klauzula_tajnosci FROM plans WHERE id_planu=?", (plan_id,)).fetchone()
+        if plan is None:
+            raise HTTPException(404, "Plan not found")
+        owner_id = None
+        for unit_row in conn.execute("SELECT id, id_planow_json FROM units").fetchall():
+            if plan_id in json.loads(unit_row["id_planow_json"] or "[]"):
+                owner_id = str(unit_row["id"])
+                break
+        if owner_id is None:
+            raise HTTPException(409, "Plan has no owning unit")
+        task_id = (request.id_zadania or "").strip()
+        if not task_id:
+            prefix = f"{typ}-"
+            existing = conn.execute("SELECT id_zadania FROM tasks WHERE id_planu=?", (plan_id,)).fetchall()
+            nums = []
+            for row in existing:
+                value = str(row["id_zadania"])
+                if value.startswith(prefix) and value[len(prefix):].isdigit(): nums.append(int(value[len(prefix):]))
+            task_id = f"{prefix}{max(nums, default=0)+1:03d}"
+        if conn.execute("SELECT 1 FROM tasks WHERE id_planu=? AND id_zadania=?", (plan_id, task_id)).fetchone():
+            raise HTTPException(409, "Task identifier already exists in this plan")
+        conn.execute("INSERT INTO tasks (id_planu,id_zadania,id_jednostek_json,nazwa_zadania,data_utworzenia,data_aktualizacji,status,poziom_realizacji,koszt,zasoby_json,klauzula_tajnosci,typ_zadania) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            (plan_id, task_id, json.dumps([owner_id]), name, now, now, 0, 0.0, 0.0, "{}", request.klauzula_tajnosci or plan["klauzula_tajnosci"], typ))
+        row = conn.execute("SELECT * FROM tasks WHERE id_planu=? AND id_zadania=?", (plan_id, task_id)).fetchone()
+    return task_dict(row)
 
 
 @app.patch("/tasks/{plan_id}/{task_id}/progress")

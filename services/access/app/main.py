@@ -5,6 +5,7 @@ production deployments must use a trusted identity provider and enforce permissi
 at the service boundary.
 """
 import os
+import re
 from typing import Any
 
 import httpx
@@ -144,6 +145,19 @@ async def access_context(
             if parent in visible_plans and pid not in visible_plans:
                 visible_plans.add(pid)
                 changed = True
+
+    # Include ancestor codes for plans already visible to this unit. This happens
+    # after descendant expansion so the parent code does not expose sibling plans.
+    for pid in list(visible_plans):
+        current = plan_by_id.get(pid)
+        seen_ancestors: set[str] = set()
+        while current:
+            parent_id = str(current.get("id_planu_nadrzednego") or "")
+            if not parent_id or parent_id in seen_ancestors:
+                break
+            seen_ancestors.add(parent_id)
+            visible_plans.add(parent_id)
+            current = plan_by_id.get(parent_id)
 
     return visible_units, visible_plans, units, plans
 
@@ -416,9 +430,19 @@ async def get_unit_requirements(x_person_id: str | None = Header(default=None, a
 @app.get("/plans")
 async def get_visible_plans(x_person_id: str | None = Header(default=None, alias="X-Person-Id")):
     person = await resolve_person(x_person_id)
-    _, visible_plan_ids, _, plans = await access_context(person)
+    _, visible_plan_ids, units, plans = await access_context(person)
     readable_ids = readable_plan_ids(person, plans, visible_plan_ids)
-    return [sanitize_plan(plan, readable_ids) for plan in plans if str(plan["id_planu"]) in readable_ids]
+    own_id = str(person["id_jednostki"])
+    owners = {str(pid): str(unit["id"]) for unit in units for pid in unit.get("id_planow", [])}
+    result = []
+    for plan in plans:
+        if str(plan["id_planu"]) not in readable_ids:
+            continue
+        item = sanitize_plan(plan, readable_ids)
+        if owners.get(str(plan["id_planu"])) != own_id and str(person.get("id_osoby")) != "demo-premier":
+            item["wymogi"] = [r for r in item.get("wymogi", []) or [] if str(r.get("id_jednostki")) == own_id]
+        result.append(item)
+    return result
 
 
 @app.get("/plans/{plan_id}")
@@ -427,7 +451,7 @@ async def get_visible_plan(
     x_person_id: str | None = Header(default=None, alias="X-Person-Id"),
 ):
     person = await resolve_person(x_person_id)
-    _, visible_plan_ids, _, plans = await access_context(person)
+    _, visible_plan_ids, units, plans = await access_context(person)
     plan = next((p for p in plans if str(p["id_planu"]) == plan_id), None)
     if plan_id not in visible_plan_ids or not plan_is_readable(person, plan):
         raise not_found()
@@ -438,7 +462,11 @@ async def get_visible_plan(
         if str(p.get("id_planu_nadrzednego") or "") == plan_id
         and str(p["id_planu"]) in readable_ids
     ]
-    return sanitize_plan(result, readable_ids)
+    result = sanitize_plan(result, readable_ids)
+    owners = {str(pid): str(unit["id"]) for unit in units for pid in unit.get("id_planow", [])}
+    if owners.get(plan_id) != str(person["id_jednostki"]) and str(person.get("id_osoby")) != "demo-premier":
+        result["wymogi"] = [r for r in result.get("wymogi", []) or [] if str(r.get("id_jednostki")) == str(person["id_jednostki"])]
+    return result
 
 
 @app.get("/tasks")
@@ -616,17 +644,24 @@ async def create_visible_plan(payload: dict[str, Any], x_person_id: str | None =
     for requirement in payload.get("wymogi", []):
         if str(requirement.get("id_jednostki")) not in direct_children:
             raise HTTPException(403, "Requirements may target only directly subordinate units")
+    own_unit = next((u for u in units if str(u["id"]) == own_id), {})
+    own_parent = str(own_unit.get("id_jednostki_nadrzednej") or "")
     if parent_id:
         parent = next((p for p in plans if str(p["id_planu"]) == parent_id), None)
         if not parent or not plan_is_readable(person, parent):
             raise not_found()
         owners = {str(pid): str(u["id"]) for u in units for pid in u.get("id_planow", [])}
         parent_owner = owners.get(parent_id, "")
-        own_parent = str(next((u.get("id_jednostki_nadrzednej") for u in units if str(u["id"]) == own_id), "") or "")
         if parent_id not in visible_plan_ids and parent_owner != own_parent:
             raise HTTPException(403, "A child plan must reference an own or directly superior plan")
         if parent_owner != own_id and parent_owner != own_parent:
             raise HTTPException(403, "A child plan must reference an own or directly superior plan")
+        if not re.fullmatch(re.escape(parent_id) + r"[A-Z]", str(payload.get("id_planu", ""))):
+            raise HTTPException(422, "Plan code must be the parent plan code followed by exactly one uppercase letter")
+    elif own_parent:
+        raise HTTPException(422, "A non-root unit must select its parent plan before creating a plan")
+    elif not re.fullmatch(r"[A-Z]", str(payload.get("id_planu", ""))):
+        raise HTTPException(422, "A root plan must use a single uppercase letter as its code")
     return await data_mutate("POST", "/plans", payload)
 
 
@@ -654,6 +689,14 @@ async def update_visible_plan(plan_id: str, payload: dict[str, Any], x_person_id
             raise HTTPException(403, "A child plan must reference an own or directly superior plan")
         if parent_owner != own_id and parent_owner != own_parent:
             raise HTTPException(403, "A child plan must reference an own or directly superior plan")
+        if not re.fullmatch(re.escape(parent_id) + r"[A-Z]", str(payload.get("id_planu", ""))):
+            raise HTTPException(422, "Plan code must be the parent plan code followed by exactly one uppercase letter")
+    else:
+        own_parent_id = str(next((u.get("id_jednostki_nadrzednej") for u in units if str(u["id"]) == own_id), "") or "")
+        if own_parent_id:
+            raise HTTPException(422, "A non-root unit must select its parent plan before saving a plan")
+        if not re.fullmatch(r"[A-Z]", str(payload.get("id_planu", ""))):
+            raise HTTPException(422, "A root plan must use a single uppercase letter as its code")
     direct_children = {str(u["id"]) for u in units if str(u.get("id_jednostki_nadrzednej") or "") == own_id}
     for requirement in payload.get("wymogi", []):
         if str(requirement.get("id_jednostki")) not in direct_children:
@@ -706,6 +749,8 @@ async def activate_visible_plan(
     if plan is None or plan_id not in visible_plan_ids or not plan_is_readable(person, plan):
         raise not_found()
     own_unit_id = str(person["id_jednostki"])
+    # Premier's demo identity is assigned to U-PRM (the PRM/RM coordination node),
+    # not KPRM. The Premier may activate plans owned by U-PRM or its direct reports.
     unit_by_id = {str(u["id"]): u for u in units}
     owners = {str(pid): str(unit["id"]) for unit in units for pid in unit.get("id_planow", [])}
     owner_id = owners.get(plan_id)
@@ -716,6 +761,37 @@ async def activate_visible_plan(
     if owner_id not in visible_units or owner_id not in unit_by_id:
         raise not_found()
     return await data_mutate("POST", f"/plans/{plan_id}/activate", {"activated_by": str(person["id_osoby"])})
+
+
+
+
+@app.post("/plans/{plan_id}/tasks", status_code=201)
+async def create_task_for_own_plan(
+    plan_id: str, payload: dict[str, Any],
+    x_person_id: str | None = Header(default=None, alias="X-Person-Id"),
+):
+    person = await resolve_person(x_person_id)
+    visible_units, visible_plan_ids, units, plans = await access_context(person)
+    own_id = str(person["id_jednostki"])
+    owners = {str(pid): str(unit["id"]) for unit in units for pid in unit.get("id_planow", [])}
+    plan = next((item for item in plans if str(item.get("id_planu")) == plan_id), None)
+    if plan_id not in visible_plan_ids or not plan_is_readable(person, plan) or owners.get(plan_id) != own_id:
+        raise not_found()
+    name = str(payload.get("nazwa_zadania", "")).strip()
+    if len(name) < 3:
+        raise HTTPException(422, "Task name must contain at least 3 characters")
+    task_type = str(payload.get("typ_zadania", "PRZ"))
+    if task_type not in {"PRZ", "REAL"}:
+        raise HTTPException(422, "Unknown task type")
+    if task_type == "REAL" and plan.get("status_operacyjny") != "active":
+        raise HTTPException(409, "REAL tasks can be added only to an active plan")
+    if task_type == "PRZ" and plan.get("status_operacyjny") == "active":
+        raise HTTPException(409, "Preparation tasks cannot be added to an active plan")
+    if task_type == "PRZ" and plan.get("status_planu") not in ("editing", "draft", "rejected", "approved"):
+        raise HTTPException(409, "Preparation tasks can be added only to a plan that is not in review")
+    payload["typ_zadania"] = task_type
+    payload["klauzula_tajnosci"] = plan.get("klauzula_tajnosci", "jawne")
+    return await data_mutate("POST", f"/plans/{plan_id}/tasks", payload)
 
 
 @app.patch("/tasks/{plan_id}/{task_id}/progress")

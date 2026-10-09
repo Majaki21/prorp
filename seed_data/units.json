@@ -3,26 +3,13 @@
     "id": "U-PRM",
     "nazwa": "Prezes Rady Ministrów / Rada Ministrów — węzeł koordynacyjny PoC",
     "id_jednostki_nadrzednej": null,
-    "id_planow": [],
-    "budzet": 0,
-    "zasoby": {},
-    "id_regionu": null,
-    "typ": "wezel_koordynacyjny_poc"
-  },
-  {
-    "id": "U-KPRM",
-    "nazwa": "Kancelaria Prezesa Rady Ministrów",
-    "id_jednostki_nadrzednej": "U-PRM",
     "id_planow": [
       "O"
     ],
-    "budzet": 12000000,
-    "zasoby": {
-      "personel": 120,
-      "pojazdy": 8
-    },
+    "budzet": 50000000,
+    "zasoby": {},
     "id_regionu": null,
-    "typ": "administracja centralna"
+    "typ": "wezel_koordynacyjny_poc"
   },
   {
     "id": "U-MSWIA",
@@ -197,7 +184,7 @@
     "typ": "instytucja publiczna"
   },
   {
-    "id": "U-PRM",
+    "id": "U-LPR",
     "nazwa": "Lotnicze Pogotowie Ratunkowe",
     "id_jednostki_nadrzednej": "U-MZ",
     "id_planow": [

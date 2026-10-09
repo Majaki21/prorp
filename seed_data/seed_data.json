@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "PRO RP — seed danych demonstracyjnych (struktura instytucji PoC)",
-    "warning": "Nazwy instytucji są rzeczywiste, ale węzeł Prezesa RM/Rady Ministrów oraz wybrane relacje nadrzędności są uproszczeniem koordynacyjnym PoC, a nie formalną mapą podległości prawnej. Plany mają własną hierarchię uruchamiania, która nie musi być identyczna z hierarchią administracyjną. Statusy, budżety, zasoby, terminy i przypisania zadań są syntetyczne.",
+    "warning": "Nazwy instytucji są rzeczywiste, ale węzeł Prezesa RM/Rady Ministrów oraz wybrane relacje nadrzędności są uproszczeniem koordynacyjnym PoC, a nie formalną mapą podległości prawnej. Plany mają własną hierarchię uruchamiania, która nie musi być identyczna z hierarchią administracyjną. Statusy, budżety, zasoby, terminy i przypisania zadań są syntetyczne. Budżet 50 000 000 PLN dla węzła U-PRM jest syntetyczną alokacją koordynacyjną PoC, a nie informacją o rzeczywistym budżecie państwa.",
     "generated_on": "2026-10-09",
     "counts": {
       "plans": 25,
@@ -14,9 +14,9 @@
       "id_planu": "O",
       "id_planu_nadrzednego": null,
       "nazwa_dokumentu": "Plan O — koordynacja krajowa",
-      "sporzadzil": "Kancelaria Prezesa Rady Ministrów",
+      "sporzadzil": "Prezes Rady Ministrów / Rada Ministrów — węzeł koordynacyjny PoC",
       "uzgadnial": [],
-      "zatwierdzajacy": "Kancelaria Prezesa Rady Ministrów",
+      "zatwierdzajacy": "Prezes Rady Ministrów / Rada Ministrów — węzeł koordynacyjny PoC",
       "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
       "data_utworzenia": "2026-09-01",
       "data_zatwierdzeina": "2026-09-10",
@@ -341,26 +341,13 @@
       "id": "U-PRM",
       "nazwa": "Prezes Rady Ministrów / Rada Ministrów — węzeł koordynacyjny PoC",
       "id_jednostki_nadrzednej": null,
-      "id_planow": [],
-      "budzet": 0,
-      "zasoby": {},
-      "id_regionu": null,
-      "typ": "wezel_koordynacyjny_poc"
-    },
-    {
-      "id": "U-KPRM",
-      "nazwa": "Kancelaria Prezesa Rady Ministrów",
-      "id_jednostki_nadrzednej": "U-PRM",
       "id_planow": [
         "O"
       ],
-      "budzet": 12000000,
-      "zasoby": {
-        "personel": 120,
-        "pojazdy": 8
-      },
+      "budzet": 50000000,
+      "zasoby": {},
       "id_regionu": null,
-      "typ": "administracja centralna"
+      "typ": "wezel_koordynacyjny_poc"
     },
     {
       "id": "U-MSWIA",
@@ -535,7 +522,7 @@
       "typ": "instytucja publiczna"
     },
     {
-      "id": "U-PRM",
+      "id": "U-LPR",
       "nazwa": "Lotnicze Pogotowie Ratunkowe",
       "id_jednostki_nadrzednej": "U-MZ",
       "id_planow": [
@@ -640,8 +627,7 @@
         "personel": 66,
         "pojazdy": 6
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-11-10"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "ORP",
@@ -659,8 +645,7 @@
         "personel": 69,
         "pojazdy": 0
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-10-12"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "ORS",
@@ -678,8 +663,7 @@
         "personel": 41,
         "pojazdy": 7
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-11-24"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "ORPP",
@@ -697,8 +681,7 @@
         "personel": 64,
         "pojazdy": 2
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2027-11-02"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "ORSS",
@@ -716,8 +699,7 @@
         "personel": 23,
         "pojazdy": 8
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-10-22"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "ORPPP",
@@ -735,8 +717,7 @@
         "personel": 41,
         "pojazdy": 12
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-11-18"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "ORSSS",
@@ -754,8 +735,7 @@
         "personel": 17,
         "pojazdy": 7
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-11-09"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "OK",
@@ -771,8 +751,7 @@
         "personel": 31,
         "pojazdy": 7
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-11-05"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "OW",
@@ -788,8 +767,7 @@
         "personel": 10,
         "pojazdy": 1
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-26"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "PP",
@@ -807,8 +785,7 @@
         "personel": 64,
         "pojazdy": 6
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2027-09-26"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "SK",
@@ -824,8 +801,7 @@
         "personel": 62,
         "pojazdy": 13
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-11-14"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "TD",
@@ -841,8 +817,7 @@
         "personel": 56,
         "pojazdy": 13
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-11-19"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SD",
@@ -858,8 +833,7 @@
         "personel": 9,
         "pojazdy": 12
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-14"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SK",
@@ -875,8 +849,7 @@
         "personel": 26,
         "pojazdy": 6
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-11-07"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "TD",
@@ -892,8 +865,7 @@
         "personel": 37,
         "pojazdy": 14
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-17"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "RN",
@@ -909,8 +881,7 @@
         "personel": 72,
         "pojazdy": 3
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2027-09-23"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "RL",
@@ -926,8 +897,7 @@
         "personel": 13,
         "pojazdy": 7
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2027-03-19"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SD",
@@ -943,8 +913,7 @@
         "personel": 53,
         "pojazdy": 1
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-09-24"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SK",
@@ -960,8 +929,7 @@
         "personel": 60,
         "pojazdy": 9
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-11"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "TD",
@@ -977,8 +945,7 @@
         "personel": 21,
         "pojazdy": 6
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-26"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "OR",
@@ -994,8 +961,7 @@
         "personel": 71,
         "pojazdy": 1
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-24"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "RL",
@@ -1011,8 +977,7 @@
         "personel": 66,
         "pojazdy": 5
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-12-21"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "ORS",
@@ -1030,8 +995,7 @@
         "personel": 10,
         "pojazdy": 2
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-12-12"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "RL",
@@ -1047,8 +1011,7 @@
         "personel": 74,
         "pojazdy": 7
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-09-07"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "RN",
@@ -1064,8 +1027,7 @@
         "personel": 76,
         "pojazdy": 10
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-11-04"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SK",
@@ -1081,8 +1043,7 @@
         "personel": 35,
         "pojazdy": 12
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-23"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "ORSSS",
@@ -1100,8 +1061,7 @@
         "personel": 42,
         "pojazdy": 2
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-11-09"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "SD",
@@ -1117,8 +1077,7 @@
         "personel": 70,
         "pojazdy": 6
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-11-08"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SK",
@@ -1134,8 +1093,7 @@
         "personel": 33,
         "pojazdy": 11
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2027-06-01"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "PP",
@@ -1153,8 +1111,7 @@
         "personel": 80,
         "pojazdy": 0
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-11-11"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "PS",
@@ -1172,8 +1129,7 @@
         "personel": 19,
         "pojazdy": 8
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2027-10-25"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "PPP",
@@ -1191,8 +1147,7 @@
         "personel": 36,
         "pojazdy": 9
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-12-13"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "PSS",
@@ -1210,8 +1165,7 @@
         "personel": 35,
         "pojazdy": 15
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-10-26"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "PPPP",
@@ -1229,8 +1183,7 @@
         "personel": 56,
         "pojazdy": 8
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-12-22"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "PSSS",
@@ -1248,8 +1201,7 @@
         "personel": 22,
         "pojazdy": 14
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-11-20"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "RN",
@@ -1265,8 +1217,7 @@
         "personel": 16,
         "pojazdy": 2
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-12-19"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "RL",
@@ -1282,8 +1233,7 @@
         "personel": 49,
         "pojazdy": 4
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-09-15"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SD",
@@ -1299,8 +1249,7 @@
         "personel": 7,
         "pojazdy": 11
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-12-18"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SK",
@@ -1316,8 +1265,7 @@
         "personel": 73,
         "pojazdy": 13
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-12-05"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "TD",
@@ -1333,8 +1281,7 @@
         "personel": 24,
         "pojazdy": 13
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2027-02-24"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "OR",
@@ -1350,8 +1297,7 @@
         "personel": 33,
         "pojazdy": 8
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-11-09"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "ORP",
@@ -1369,8 +1315,7 @@
         "personel": 6,
         "pojazdy": 15
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-11-15"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "ORS",
@@ -1388,8 +1333,7 @@
         "personel": 41,
         "pojazdy": 7
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-12-23"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "ORPP",
@@ -1407,8 +1351,7 @@
         "personel": 44,
         "pojazdy": 8
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-10-16"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "ORSS",
@@ -1426,8 +1369,7 @@
         "personel": 67,
         "pojazdy": 12
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-12-12"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "OK",
@@ -1443,8 +1385,7 @@
         "personel": 5,
         "pojazdy": 3
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-11-16"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "ORSSS",
@@ -1462,8 +1403,7 @@
         "personel": 15,
         "pojazdy": 13
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-10-16"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "TD",
@@ -1479,8 +1419,7 @@
         "personel": 79,
         "pojazdy": 3
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-28"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "OW",
@@ -1496,8 +1435,7 @@
         "personel": 7,
         "pojazdy": 13
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2027-05-12"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "PP",
@@ -1515,8 +1453,7 @@
         "personel": 48,
         "pojazdy": 13
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-12-12"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "PS",
@@ -1534,8 +1471,7 @@
         "personel": 43,
         "pojazdy": 3
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-12-19"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "PPP",
@@ -1553,8 +1489,7 @@
         "personel": 54,
         "pojazdy": 9
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-11-06"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "PSS",
@@ -1572,8 +1507,7 @@
         "personel": 98,
         "pojazdy": 5
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-11-20"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "PPPP",
@@ -1591,8 +1525,7 @@
         "personel": 39,
         "pojazdy": 6
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-11-21"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "PSSS",
@@ -1610,8 +1543,7 @@
         "personel": 59,
         "pojazdy": 14
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-12-13"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "RN",
@@ -1627,8 +1559,7 @@
         "personel": 13,
         "pojazdy": 9
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-12-01"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "RL",
@@ -1644,8 +1575,7 @@
         "personel": 42,
         "pojazdy": 7
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-12-14"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SD",
@@ -1661,8 +1591,7 @@
         "personel": 63,
         "pojazdy": 19
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-12-08"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SK",
@@ -1678,8 +1607,7 @@
         "personel": 92,
         "pojazdy": 12
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-23"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "TD",
@@ -1695,8 +1623,7 @@
         "personel": 91,
         "pojazdy": 0
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2027-03-15"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SD",
@@ -1712,8 +1639,7 @@
         "personel": 92,
         "pojazdy": 16
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-09-16"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SK",
@@ -1729,8 +1655,7 @@
         "personel": 61,
         "pojazdy": 4
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2027-01-23"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "TD",
@@ -1746,8 +1671,7 @@
         "personel": 43,
         "pojazdy": 14
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2027-04-18"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SD",
@@ -1763,8 +1687,7 @@
         "personel": 73,
         "pojazdy": 14
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-16"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SK",
@@ -1780,8 +1703,7 @@
         "personel": 36,
         "pojazdy": 7
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-12-17"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "ORPPP",
@@ -1799,8 +1721,7 @@
         "personel": 83,
         "pojazdy": 7
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-10-27"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "ORSSS",
@@ -1818,8 +1739,7 @@
         "personel": 37,
         "pojazdy": 10
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-10-04"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "OK",
@@ -1835,8 +1755,7 @@
         "personel": 22,
         "pojazdy": 7
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-11-21"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "OW",
@@ -1852,8 +1771,7 @@
         "personel": 56,
         "pojazdy": 13
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-13"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "PP",
@@ -1871,8 +1789,7 @@
         "personel": 29,
         "pojazdy": 13
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-11-18"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "PS",
@@ -1890,8 +1807,7 @@
         "personel": 76,
         "pojazdy": 12
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-12-04"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "RL",
@@ -1907,8 +1823,7 @@
         "personel": 99,
         "pojazdy": 12
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-11-24"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "RN",
@@ -1924,8 +1839,7 @@
         "personel": 80,
         "pojazdy": 7
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-12-21"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "RL",
@@ -1941,8 +1855,7 @@
         "personel": 6,
         "pojazdy": 12
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-28"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "RN",
@@ -1958,8 +1871,7 @@
         "personel": 24,
         "pojazdy": 14
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-12-07"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SD",
@@ -1975,8 +1887,7 @@
         "personel": 53,
         "pojazdy": 18
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-11-22"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "RL",
@@ -1992,8 +1903,7 @@
         "personel": 57,
         "pojazdy": 4
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-12-10"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "TD",
@@ -2009,8 +1919,7 @@
         "personel": 44,
         "pojazdy": 6
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-11-05"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SD",
@@ -2026,8 +1935,7 @@
         "personel": 99,
         "pojazdy": 13
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-12-13"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SK",
@@ -2043,8 +1951,7 @@
         "personel": 98,
         "pojazdy": 17
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-11"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "OR",
@@ -2060,8 +1967,7 @@
         "personel": 86,
         "pojazdy": 2
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-11-25"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "ORP",
@@ -2079,8 +1985,7 @@
         "personel": 28,
         "pojazdy": 0
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-11-10"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "ORS",
@@ -2098,8 +2003,7 @@
         "personel": 88,
         "pojazdy": 3
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-11-30"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "ORPP",
@@ -2117,8 +2021,7 @@
         "personel": 35,
         "pojazdy": 11
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-12-08"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "ORSS",
@@ -2136,8 +2039,7 @@
         "personel": 23,
         "pojazdy": 9
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-12-19"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "ORPPP",
@@ -2155,8 +2057,7 @@
         "personel": 89,
         "pojazdy": 12
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-10-25"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "ORSSS",
@@ -2174,8 +2075,7 @@
         "personel": 78,
         "pojazdy": 20
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-10-23"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "OK",
@@ -2191,8 +2091,7 @@
         "personel": 79,
         "pojazdy": 3
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2027-04-14"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "OW",
@@ -2208,8 +2107,7 @@
         "personel": 57,
         "pojazdy": 11
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-22"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "PP",
@@ -2227,8 +2125,7 @@
         "personel": 56,
         "pojazdy": 15
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-09-07"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "PS",
@@ -2246,8 +2143,7 @@
         "personel": 61,
         "pojazdy": 4
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-10-13"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "PPP",
@@ -2265,8 +2161,7 @@
         "personel": 37,
         "pojazdy": 19
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-12-09"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "PSS",
@@ -2284,8 +2179,7 @@
         "personel": 96,
         "pojazdy": 18
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-10-15"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "PPPP",
@@ -2303,8 +2197,7 @@
         "personel": 38,
         "pojazdy": 14
       },
-      "klauzula_tajnosci": "tajne",
-      "termin_realizacji": "2026-11-02"
+      "klauzula_tajnosci": "tajne"
     },
     {
       "id_planu": "PSSS",
@@ -2322,8 +2215,7 @@
         "personel": 6,
         "pojazdy": 15
       },
-      "klauzula_tajnosci": "zastrzezone",
-      "termin_realizacji": "2026-11-02"
+      "klauzula_tajnosci": "zastrzezone"
     },
     {
       "id_planu": "RN",
@@ -2339,8 +2231,7 @@
         "personel": 36,
         "pojazdy": 10
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-09-11"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "RL",
@@ -2356,8 +2247,7 @@
         "personel": 4,
         "pojazdy": 16
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-02"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SK",
@@ -2373,8 +2263,7 @@
         "personel": 74,
         "pojazdy": 7
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-16"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "SK",
@@ -2390,8 +2279,7 @@
         "personel": 5,
         "pojazdy": 2
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-10-27"
+      "klauzula_tajnosci": "jawne"
     },
     {
       "id_planu": "OK",
@@ -2407,8 +2295,7 @@
         "personel": 87,
         "pojazdy": 18
       },
-      "klauzula_tajnosci": "jawne",
-      "termin_realizacji": "2026-11-02"
+      "klauzula_tajnosci": "jawne"
     }
   ],
   "infrastructure": [],

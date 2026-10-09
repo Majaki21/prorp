@@ -21,7 +21,7 @@ UNITS = [
      "id_planow": ["P-OTHER"], "id_regionu": "PL-PD", "pracownicy": [{"id_osoby": "demo-X"}], "zasoby": {}},
 ]
 PLANS = [
-    {"id_planu": "P-PUBLIC", "id_planu_nadrzednego": None, "nazwa_dokumentu": "Jawny", "klauzula_tajnosci": "jawne", "podplany": []},
+    {"id_planu": "P-PUBLIC", "id_planu_nadrzednego": None, "nazwa_dokumentu": "Jawny", "klauzula_tajnosci": "jawne", "status_planu": "draft", "status_operacyjny": "prepared", "podplany": []},
     {"id_planu": "P-SECRET", "id_planu_nadrzednego": None, "nazwa_dokumentu": "Tajny", "klauzula_tajnosci": "tajne", "podplany": []},
     {"id_planu": "P-CHILD", "id_planu_nadrzednego": "P-PUBLIC", "nazwa_dokumentu": "Podplan", "klauzula_tajnosci": "poufne", "podplany": []},
     {"id_planu": "P-OTHER", "id_planu_nadrzednego": None, "nazwa_dokumentu": "Obcy", "klauzula_tajnosci": "jawne", "podplany": []},
@@ -157,3 +157,26 @@ def test_requirements_are_visible_to_the_directly_targeted_unit(monkeypatch):
     assert len(response.json()) == 1
     assert response.json()[0]["id_planu_nadrzednego"] == "P-PUBLIC"
     assert response.json()[0]["wymog"]["opis"] == "Przygotuj plan podrzędny"
+
+
+def test_adding_task_requires_own_plan_and_preserves_access_boundary(monkeypatch):
+    client = setup_client(monkeypatch)
+    captured = {}
+
+    async def fake_data_mutate(method, path, payload):
+        captured.update(method=method, path=path, payload=payload)
+        return {"id_planu": "P-PUBLIC", "id_zadania": "PRZ-001", "nazwa_zadania": payload["nazwa_zadania"]}
+
+    monkeypatch.setattr(access, "data_mutate", fake_data_mutate)
+    allowed = client.post("/plans/P-PUBLIC/tasks", headers={"X-Person-Id": "demo-A"}, json={
+        "nazwa_zadania": "Przygotować procedurę", "typ_zadania": "PRZ"
+    })
+    assert allowed.status_code == 201, allowed.text
+    assert captured["method"] == "POST"
+    assert captured["path"] == "/plans/P-PUBLIC/tasks"
+    assert captured["payload"]["klauzula_tajnosci"] == "jawne"
+
+    denied = client.post("/plans/P-OTHER/tasks", headers={"X-Person-Id": "demo-A"}, json={
+        "nazwa_zadania": "Nieuprawnione zadanie", "typ_zadania": "PRZ"
+    })
+    assert denied.status_code == 404

@@ -223,6 +223,13 @@ async def activate_plan(
     return await access_mutate("POST", f"/plans/{plan_id}/activate", {}, person_id=x_person_id)
 
 
+
+
+@app.post("/api/plans/{plan_id}/tasks", status_code=201)
+async def create_task(plan_id: str, payload: dict, x_person_id: str | None = Header(default=None, alias="X-Person-Id")):
+    return await access_mutate("POST", f"/plans/{plan_id}/tasks", payload, person_id=x_person_id)
+
+
 @app.patch("/api/tasks/{plan_id}/{task_id}/progress")
 async def update_task_progress(
     plan_id: str,

@@ -2,6 +2,7 @@ import os
 import asyncio
 from datetime import date, datetime, timedelta
 from urllib.parse import quote
+from collections import defaultdict
 
 import httpx
 import pandas as pd
@@ -9,7 +10,7 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 
-from app.view_helpers import direct_child_units, task_belongs_to_unit, task_belongs_to_units, task_status, display_plan_name, completion_percent, format_money
+from app.view_helpers import direct_child_units, unit_descendants, task_belongs_to_unit, task_belongs_to_units, task_status, display_plan_name, completion_percent, format_money
 
 PRESENTATION_API_URL = os.getenv("PRESENTATION_API_URL", "http://localhost:8000")
 RADOM_CENTER = [52.0, 19.2]
@@ -45,12 +46,21 @@ def clamp_progress(task):
     except (TypeError, ValueError): return 0.0
 
 
+def _select_scope(scope_id):
+    """Widget callback: Streamlit executes this before rebuilding keyed widgets."""
+    st.session_state["selected_scope_id"] = scope_id
+
+
 def main():
     st.set_page_config(page_title="PRO RP | Obraz sytuacji", page_icon="🛡️", layout="wide")
     st.markdown("""<style>
     .block-container{padding-top:1.15rem;padding-bottom:2rem;max-width:1600px}
     div[data-testid="stMetric"]{background:rgba(120,130,150,.07);padding:.75rem 1rem;border-radius:.8rem;border:1px solid rgba(120,130,150,.17)}
     .eyebrow{text-transform:uppercase;letter-spacing:.09em;font-size:.72rem;font-weight:700;opacity:.68}
+    .active-plan-marker{display:none}
+    div[data-testid="stVerticalBlockBorderWrapper"]:has(.active-plan-marker){border:2px solid #3b82f6!important;background:rgba(59,130,246,.07)!important}
+    .active-plan-badge{display:inline-block;background:#2563eb;color:white;font-weight:700;font-size:.78rem;padding:.28rem .6rem;border-radius:.5rem;letter-spacing:.02em}
+    .hierarchy-level-2{padding-left:1.15rem;border-left:2px solid rgba(120,130,150,.35);margin-left:.4rem}
     </style>""", unsafe_allow_html=True)
     st.title("🛡️ Zintegrowana platforma PRO RP")
     st.caption("Obraz realizacji zadań i cykl życia planów · widoczność danych egzekwowana przez warstwę Access")
@@ -84,38 +94,71 @@ def main():
     direct_units = direct_child_units(own_unit_id, units)
     direct_ids = {str(u["id"]) for u in direct_units}
     is_national = person_id == "demo-premier"
+    # Reset the previous user's scope before the keyed scope widget is created.
+    # This prevents a stale Police/other-unit view from carrying over to Premier.
+    previous_scope_person = st.session_state.get("_scope_person_id")
+    if previous_scope_person != person_id:
+        st.session_state["selected_scope_id"] = own_unit_id
+        st.session_state["_scope_person_id"] = person_id
+    # The scope selector can navigate the visible organizational tree. The tree itself
+    # is rendered to two levels at a time; selecting a node makes it the new root.
+    descendant_units = unit_descendants(own_unit_id, units)
+    if is_national:
+        navigable_units = sorted(units, key=lambda x: x.get("nazwa", ""))
+    else:
+        navigable_units = [u for u in descendant_units if str(u.get("id")) in units_by_id]
+    scope_options = ([NATIONAL_SCOPE] if is_national else []) + [own_unit_id] + [str(u["id"]) for u in navigable_units if str(u["id"]) != own_unit_id]
+    if st.session_state.get("selected_scope_id") not in scope_options:
+        st.session_state["selected_scope_id"] = own_unit_id
     with st.sidebar:
-        if is_national:
-            scope_options = [NATIONAL_SCOPE] + [str(u["id"]) for u in sorted(direct_units, key=lambda x: x.get("nazwa", ""))]
-            selected_scope = st.selectbox("Zakres analizy", scope_options, format_func=lambda x: "Przegląd krajowy · jednostki bezpośrednio podległe" if x == NATIONAL_SCOPE else units_by_id.get(x, {}).get("nazwa", "Jednostka"))
-        else:
-            selected_scope = own_unit_id
-            st.caption("Zakres szczegółowy ograniczony do jednostki użytkownika.")
+        selected_scope = st.selectbox(
+            "Zakres analizy", scope_options,
+            format_func=lambda x: (
+                "Przegląd krajowy · jednostki bezpośrednio podległe" if x == NATIONAL_SCOPE
+                else f"Moja jednostka · {units_by_id.get(x, {}).get('nazwa', 'Jednostka')}" if x == own_unit_id
+                else units_by_id.get(x, {}).get("nazwa", "Jednostka")
+            ),
+            key="selected_scope_id",
+        )
+        st.caption("Zakres prezentacji nie zmienia tożsamości ani uprawnień konta.")
 
+    scope_unit_id = own_unit_id if selected_scope == NATIONAL_SCOPE else str(selected_scope)
+    scope_unit = units_by_id.get(scope_unit_id, {})
+    scope_direct_units = direct_child_units(scope_unit_id, units)
+    scope_direct_ids = {str(u["id"]) for u in scope_direct_units}
     if is_national and selected_scope == NATIONAL_SCOPE:
-        visible_scope_units = direct_units
-        visible_scope_ids = direct_ids
-        # Include the national-level user's own plans in the plan lifecycle UI,
-        # while task aggregates remain restricted to directly subordinate units.
+        visible_scope_units = scope_direct_units
+        visible_scope_ids = scope_direct_ids
         own_plans_for_scope = {str(pid) for pid in units_by_id.get(own_unit_id, {}).get("id_planow", [])}
-        visible_scope_plans = own_plans_for_scope | {str(pid) for u in direct_units for pid in u.get("id_planow", [])}
+        visible_scope_plans = own_plans_for_scope | {str(pid) for u in scope_direct_units for pid in u.get("id_planow", [])}
         visible_scope_tasks = [t for t in tasks if task_belongs_to_units(t, visible_scope_ids, visible_scope_plans, owner_by_plan)]
         overview_title = "Obraz sytuacji — poziom krajowy"
     else:
-        target_unit_id = selected_scope if is_national else own_unit_id
-        visible_scope_units = [units_by_id[target_unit_id]] if target_unit_id in units_by_id else []
-        visible_scope_ids = {target_unit_id}
+        visible_scope_units = [scope_unit] if scope_unit else []
+        visible_scope_ids = {scope_unit_id}
         visible_scope_plans = {str(pid) for u in visible_scope_units for pid in u.get("id_planow", [])}
-        visible_scope_tasks = [t for t in tasks if task_belongs_to_unit(t, target_unit_id, visible_scope_plans)]
-        overview_title = visible_scope_units[0].get("nazwa", "Obraz sytuacji") if visible_scope_units else "Obraz sytuacji"
+        visible_scope_tasks = [t for t in tasks if task_belongs_to_unit(t, scope_unit_id, visible_scope_plans)]
+        overview_title = scope_unit.get("nazwa", "Obraz sytuacji") if scope_unit else "Obraz sytuacji"
+    if is_national and selected_scope == own_unit_id:
+        # PRM/RM perspective includes plans owned by direct reports so that the
+        # Premier can coordinate and activate plans from this scope as well.
+        visible_scope_plans |= {
+            str(pid) for unit in scope_direct_units for pid in unit.get("id_planow", [])
+        }
     visible_scope_plans_list = [plans_by_id[pid] for pid in visible_scope_plans if pid in plans_by_id]
     active_plans = [p for p in visible_scope_plans_list if p.get("status_operacyjny") == "active"]
+    if is_national and selected_scope == NATIONAL_SCOPE:
+        scope_label = "Poziom krajowy · przegląd jednostek bezpośrednio podległych"
+    else:
+        scope_label = f"Poziom widoku: {overview_title}"
+    st.markdown(f"**{scope_label}**")
+    st.caption(f"Konto: {me.get('stanowisko', 'Użytkownik')} · jednostka konta: {units_by_id.get(own_unit_id, {}).get('nazwa', own_unit_id)}")
     real_tasks = [t for t in visible_scope_tasks if t.get("typ_zadania", "REAL") == "REAL"]
     completion = completion_percent(real_tasks)
     attention_tasks = [t for t in visible_scope_tasks if clamp_progress(t) < 1 and (t.get("status") is False or t.get("status") == 0)]
 
-    tab_overview, tab_tasks, tab_plans, tab_map, tab_analytics = st.tabs(
-        ["Obraz sytuacji", "Zadania", "Plany", "Mapa", "Analizy"]
+    tab_overview, tab_tasks, tab_plans, tab_map, tab_operational_analytics, tab_analytics, tab_hierarchy = st.tabs(
+        ["Obraz sytuacji", "Zadania", "Plany", "Mapa", "Analizy operacyjne", "Historia i scenariusze", "Hierarchia"]
     )
 
     with tab_overview:
@@ -123,12 +166,10 @@ def main():
         st.header(overview_title)
         if is_national and selected_scope == NATIONAL_SCOPE:
             st.caption("Przegląd obejmuje wyłącznie jednostki bezpośrednio podległe. Szczegóły jednostek niższego szczebla nie są agregowane ani wyświetlane.")
-        k1,k2,k3,k4,k5 = st.columns(5)
+        k1,k2,k3 = st.columns(3)
         k1.metric("Aktywne plany", len(active_plans))
-        k2.metric("Zadania REAL", len(real_tasks))
-        k3.metric("Średnia realizacja REAL", f"{completion:.0f}%" if completion is not None else "—")
-        k4.metric("Wymagające uwagi", len(attention_tasks))
-        k5.metric("Budżet jednostek", format_money(sum(float(u.get("budzet", 0) or 0) for u in visible_scope_units)))
+        k2.metric("Wymagające uwagi", len(attention_tasks))
+        k3.metric("Budżet jednostek", format_money(sum(float(u.get("budzet", 0) or 0) for u in visible_scope_units)))
         st.divider()
         left,right = st.columns([1.25,1])
         with left:
@@ -146,62 +187,133 @@ def main():
             if not attention_tasks: st.success("Brak niezakończonych zadań w wybranym zakresie.")
             for t in attention_tasks[:8]:
                 p = plans_by_id.get(str(t.get("id_planu")), {})
-                st.markdown(f"**{t.get('nazwa_zadania','Zadanie')}**")
-                st.caption(f"Plan: {display_plan_name(p)} · {task_status(t)} · {clamp_progress(t)*100:.0f}%")
+                with st.container(border=True):
+                    st.markdown(f"**{t.get('nazwa_zadania','Zadanie')}**")
+                    st.caption(f"Plan: {display_plan_name(p)} · {task_status(t)} · {clamp_progress(t)*100:.0f}%")
         st.divider()
         st.subheader("Jednostki w zakresie")
         rows=[]
-        for u in visible_scope_units:
-            u_tasks=[t for t in visible_scope_tasks if str(u.get("id")) in {str(x) for x in t.get("id_jednostek", [])} or (not t.get("id_jednostek") and str(t.get("id_planu")) in {str(x) for x in u.get("id_planow", [])})]
+        # Show only the current user's direct reports as clickable drill-down targets.
+        # The row statistics are calculated per unit and never aggregate deeper descendants.
+        if selected_scope == NATIONAL_SCOPE:
+            unit_cards = scope_direct_units
+        else:
+            unit_cards = scope_direct_units if scope_direct_units else visible_scope_units
+        for u in unit_cards:
+            uid_value = str(u.get("id"))
+            unit_plan_ids = {str(pid) for pid in u.get("id_planow", [])}
+            u_tasks = [t for t in tasks if task_belongs_to_unit(t, uid_value, unit_plan_ids)]
             val=completion_percent([t for t in u_tasks if t.get("typ_zadania")=="REAL"])
-            rows.append({"Jednostka":u.get("nazwa"),"Plany":sum(1 for p in visible_scope_plans_list if owner_by_plan.get(str(p.get("id_planu")))==str(u.get("id"))),"Zadania REAL":sum(1 for t in u_tasks if t.get("typ_zadania")=="REAL"),"Realizacja":f"{val:.0f}%" if val is not None else "—"})
+            rows.append({"ID": uid_value, "Jednostka":u.get("nazwa"),"Plany":sum(1 for pid in unit_plan_ids if pid in plans_by_id),"Zadania REAL":sum(1 for t in u_tasks if t.get("typ_zadania")=="REAL"),"Realizacja":f"{val:.0f}%" if val is not None else "—"})
         if rows:
-            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+            unit_cols = st.columns(min(3, len(rows)))
+            for index, row in enumerate(rows):
+                uid = row["ID"]
+                with unit_cols[index % len(unit_cols)]:
+                    with st.container(border=True):
+                        st.markdown(f"**{row['Jednostka']}**")
+                        st.caption(f"Plany: {row['Plany']} · zadania REAL: {row['Zadania REAL']} · realizacja: {row['Realizacja']}")
+                        if uid:
+                            st.button(
+                                "Otwórz obraz sytuacji", key=f"open-unit-{uid}",
+                                use_container_width=True, on_click=_select_scope, args=(uid,),
+                            )
         else:
             st.info("Brak jednostek do pokazania.")
 
     with tab_tasks:
-        st.header("Rejestr zadań")
-        st.caption("Jedna tabela dla zadań widocznych w bieżącej perspektywie. Szczegóły i raportowanie są ograniczone uprawnieniami oraz własnością zadania.")
-        all_scope_tasks = visible_scope_tasks
-        f1,f2,f3 = st.columns([2,1,1])
-        search = f1.text_input("Szukaj zadania lub planu", placeholder="Nazwa zadania…")
-        type_filter = f2.selectbox("Rodzaj", ["Wszystkie", "PRZ", "REAL"])
-        status_filter = f3.selectbox("Status", ["Wszystkie", "Zaplanowane", "W toku", "Zakończone"])
-        filtered=[]
-        for t in all_scope_tasks:
-            p=plans_by_id.get(str(t.get("id_planu")), {})
-            if type_filter != "Wszystkie" and t.get("typ_zadania") != type_filter: continue
-            if status_filter != "Wszystkie" and task_status(t) != status_filter: continue
-            if search and search.casefold() not in (str(t.get("nazwa_zadania",""))+" "+display_plan_name(p)).casefold(): continue
-            filtered.append(t)
-        rows=[]
-        for t in filtered:
-            p=plans_by_id.get(str(t.get("id_planu")), {})
-            owner=units_by_id.get(owner_by_plan.get(str(t.get("id_planu")), ""), {})
-            rows.append({"Zadanie":t.get("nazwa_zadania"),"Plan":display_plan_name(p),"Jednostka":owner.get("nazwa","—"),"Typ":t.get("typ_zadania","REAL"),"Status":task_status(t),"Postęp":f"{clamp_progress(t)*100:.0f}%"})
-        if rows:
-            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-        else:
-            st.info("Brak zadań spełniających kryteria.")
-        if filtered:
-            options={f"{t.get('nazwa_zadania','Zadanie')} · {display_plan_name(plans_by_id.get(str(t.get('id_planu')),{}))}":t for t in filtered}
-            chosen_label=st.selectbox("Szczegóły zadania", list(options))
-            task=options[chosen_label]; p=plans_by_id.get(str(task.get("id_planu")), {})
-            with st.container(border=True):
-                st.subheader(task.get("nazwa_zadania", "Zadanie"))
-                st.caption(f"Plan: {display_plan_name(p)} · jednostka odpowiedzialna: {units_by_id.get(owner_by_plan.get(str(task.get('id_planu')),''),{}).get('nazwa','—')}")
-                a,b,c=st.columns(3); a.metric("Rodzaj",task.get("typ_zadania","REAL")); b.metric("Status",task_status(task)); c.metric("Postęp",f"{clamp_progress(task)*100:.0f}%")
-                st.progress(clamp_progress(task))
-                if str(owner_by_plan.get(str(task.get("id_planu")),""))==own_unit_id and ((task.get("typ_zadania")=="REAL" and p.get("status_operacyjny")=="active") or (task.get("typ_zadania")=="PRZ" and p.get("status_planu")=="approved")) :
-                    new_progress=st.slider("Zaktualizuj rzeczywisty postęp",0,100,int(clamp_progress(task)*100),key=f"task-progress-{task.get('id_planu')}-{task.get('id_zadania')}")
-                    if st.button("Zapisz postęp",key=f"save-progress-{task.get('id_planu')}-{task.get('id_zadania')}"):
-                        try: patch(f"/api/tasks/{task.get('id_planu')}/{task.get('id_zadania')}/progress",person_id,{"poziom_realizacji":new_progress/100}); st.success("Zapisano postęp."); st.rerun()
-                        except Exception as exc: st.error(f"Nie udało się zapisać postępu: {exc}")
-                elif task.get("typ_zadania")=="REAL" and p.get("status_operacyjny")!="active": st.info("Zadanie REAL jest zaplanowane. Raportowanie postępu będzie dostępne po aktywacji planu.")
-                elif task.get("typ_zadania")=="PRZ" and p.get("status_planu")!="approved": st.info("Zadanie przygotowawcze można raportować po zatwierdzeniu planu.")
-                else: st.caption("Podgląd zadania. Edycja jest dostępna wyłącznie dla własnych zadań REAL w aktywnym planie.")
-                st.write(f"**Ostatnia aktualizacja:** {task.get('data_aktualizacji','—')}")
+        task_views = st.tabs(["Rejestr zadań", "Dodaj zadanie"])
+        with task_views[0]:
+            st.header("Rejestr zadań")
+            st.caption("Jedna tabela dla zadań widocznych w bieżącej perspektywie. Szczegóły i raportowanie są ograniczone uprawnieniami oraz własnością zadania.")
+            all_scope_tasks = visible_scope_tasks
+            f1, f2, f3 = st.columns([2, 1, 1])
+            plan_filter_options = {"Wszystkie plany": "__all__"}
+            for pid in sorted({str(t.get("id_planu")) for t in all_scope_tasks}):
+                plan_obj = plans_by_id.get(pid, {})
+                plan_filter_options[f"{display_plan_name(plan_obj)} · {pid}"] = pid
+            selected_plan_filter_label = f1.selectbox("Filtruj według planu", list(plan_filter_options), key="task-plan-filter")
+            selected_plan_filter = plan_filter_options[selected_plan_filter_label]
+            search = f2.text_input("Szukaj zadania", placeholder="Nazwa zadania…", key="task-name-search")
+            type_filter = f3.selectbox("Rodzaj", ["Wszystkie", "PRZ", "REAL"], key="task-type-filter")
+            status_filter = st.selectbox("Status", ["Wszystkie", "Zaplanowane", "W toku", "Zakończone"], key="task-status-filter")
+            filtered=[]
+            for t in all_scope_tasks:
+                p=plans_by_id.get(str(t.get("id_planu")), {})
+                if selected_plan_filter != "__all__" and str(t.get("id_planu")) != selected_plan_filter: continue
+                if type_filter != "Wszystkie" and t.get("typ_zadania") != type_filter: continue
+                if status_filter != "Wszystkie" and task_status(t) != status_filter: continue
+                if search and search.casefold() not in str(t.get("nazwa_zadania", "")).casefold(): continue
+                filtered.append(t)
+            filtered.sort(key=lambda t: (0 if t.get("typ_zadania", "REAL") == "REAL" else 1, display_plan_name(plans_by_id.get(str(t.get("id_planu")), {})).casefold(), str(t.get("nazwa_zadania", "")).casefold()))
+            rows=[]
+            for t in filtered:
+                p=plans_by_id.get(str(t.get("id_planu")), {})
+                owner=units_by_id.get(owner_by_plan.get(str(t.get("id_planu")), ""), {})
+                rows.append({"Zadanie":t.get("nazwa_zadania"),"Plan":display_plan_name(p),"Jednostka":owner.get("nazwa","—"),"Typ":t.get("typ_zadania","REAL"),"Status":task_status(t),"Postęp":f"{clamp_progress(t)*100:.0f}%"})
+            if rows:
+                task_df = pd.DataFrame(rows)
+                task_styler = task_df.style.apply(
+                    lambda row: ["background-color: #fff2b3; color: #242424" if row.get("Typ") == "REAL" else "" for _ in row], axis=1
+                )
+                st.dataframe(task_styler, use_container_width=True, hide_index=True)
+                st.caption("Zadania REAL są wyróżnione kolorem żółtym i sortowane przed zadaniami PRZ.")
+            else:
+                st.info("Brak zadań spełniających kryteria.")
+            if filtered:
+                detail_plan_options = {f"{display_plan_name(plans_by_id.get(pid, {}))} · {pid}": pid for pid in sorted({str(t.get("id_planu")) for t in filtered})}
+                detail_plan_label = st.selectbox("Szczegóły zadania — wybierz plan", list(detail_plan_options), key="task-detail-plan")
+                detail_plan_id = detail_plan_options[detail_plan_label]
+                tasks_for_detail_plan = [t for t in filtered if str(t.get("id_planu")) == detail_plan_id]
+                detail_task_options = {f"{t.get('nazwa_zadania','Zadanie')} · {t.get('id_zadania','')}": t for t in tasks_for_detail_plan}
+                chosen_label = st.selectbox("Wybierz konkretne zadanie", list(detail_task_options), key=f"task-detail-item-{detail_plan_id}")
+                task=detail_task_options[chosen_label]; p=plans_by_id.get(str(task.get("id_planu")), {})
+                with st.container(border=True):
+                    st.subheader(task.get("nazwa_zadania", "Zadanie"))
+                    st.caption(f"Plan: {display_plan_name(p)} · jednostka odpowiedzialna: {units_by_id.get(owner_by_plan.get(str(task.get('id_planu')),''),{}).get('nazwa','—')}")
+                    a,b,c=st.columns(3); a.metric("Rodzaj",task.get("typ_zadania","REAL")); b.metric("Status",task_status(task)); c.metric("Postęp",f"{clamp_progress(task)*100:.0f}%")
+                    st.progress(clamp_progress(task))
+                    if str(owner_by_plan.get(str(task.get("id_planu")),""))==own_unit_id and ((task.get("typ_zadania")=="REAL" and p.get("status_operacyjny")=="active") or (task.get("typ_zadania")=="PRZ" and p.get("status_planu")=="approved")) :
+                        new_progress=st.slider("Zaktualizuj rzeczywisty postęp",0,100,int(clamp_progress(task)*100),key=f"task-progress-{task.get('id_planu')}-{task.get('id_zadania')}")
+                        if st.button("Zapisz postęp",key=f"save-progress-{task.get('id_planu')}-{task.get('id_zadania')}"):
+                            try: patch(f"/api/tasks/{task.get('id_planu')}/{task.get('id_zadania')}/progress",person_id,{"poziom_realizacji":new_progress/100}); st.success("Zapisano postęp."); st.rerun()
+                            except Exception as exc: st.error(f"Nie udało się zapisać postępu: {exc}")
+                    elif task.get("typ_zadania")=="REAL" and p.get("status_operacyjny")!="active": st.info("Zadanie REAL jest zaplanowane. Raportowanie postępu będzie dostępne po aktywacji planu.")
+                    elif task.get("typ_zadania")=="PRZ" and p.get("status_planu")!="approved": st.info("Zadanie przygotowawcze można raportować po zatwierdzeniu planu.")
+                    else: st.caption("Podgląd zadania. Edycja jest dostępna wyłącznie dla własnych zadań REAL w aktywnym planie.")
+                    st.write(f"**Ostatnia aktualizacja:** {task.get('data_aktualizacji','—')}")
+
+        with task_views[1]:
+            st.subheader("Dodaj zadanie do planu")
+            st.caption("Zadanie jest przypisane do wybranego planu i automatycznie do jednostki będącej właścicielem planu. Nie edytujemy ani nie odtwarzamy istniejących zadań.")
+            own_plans_for_tasks = [p for p in plans if owner_by_plan.get(str(p.get("id_planu"))) == own_unit_id]
+            eligible_plans = [p for p in own_plans_for_tasks if p.get("status_planu") not in ("in_review",) and p.get("status_operacyjny") in ("prepared", None, "active")]
+            if not eligible_plans:
+                st.info("Brak własnych planów, do których można dodać zadanie.")
+            else:
+                plan_labels = {f"{display_plan_name(p)} · {p.get('id_planu')} · {plan_status(p)} · {op_status(p)}": p for p in eligible_plans}
+                chosen_plan_label = st.selectbox("Plan, do którego przypisać zadanie", list(plan_labels), key="new-task-plan")
+                chosen_plan = plan_labels[chosen_plan_label]
+                is_plan_active = chosen_plan.get("status_operacyjny") == "active"
+                task_type_options = ["REAL"] if is_plan_active else ["PRZ"]
+                with st.form("create-task-form", clear_on_submit=True):
+                    new_task_name = st.text_input("Nazwa zadania", placeholder="Np. Weryfikacja gotowości zasobów")
+                    new_task_type = st.selectbox("Rodzaj zadania", task_type_options, format_func=lambda x: "Zadanie operacyjne (REAL)" if x == "REAL" else "Zadanie przygotowawcze (PRZ)")
+                    create_task_submit = st.form_submit_button("Dodaj zadanie", type="primary")
+                if is_plan_active:
+                    st.caption("Plan jest aktywny — można dodać zadanie operacyjne REAL.")
+                else:
+                    st.caption("Plan nie jest aktywny operacyjnie — można dodać zadanie przygotowawcze PRZ. W zatwierdzonym planie postęp PRZ można raportować; zadania REAL są przeznaczone dla planu aktywnego.")
+                if create_task_submit:
+                    if len(new_task_name.strip()) < 3:
+                        st.error("Nazwa zadania musi mieć co najmniej 3 znaki.")
+                    else:
+                        try:
+                            created = post(f"/api/plans/{chosen_plan.get('id_planu')}/tasks", person_id, {"nazwa_zadania": new_task_name.strip(), "typ_zadania": new_task_type})
+                            st.success(f"Dodano zadanie „{created.get('nazwa_zadania', new_task_name.strip())}” do planu {display_plan_name(chosen_plan)}.")
+                            st.rerun()
+                        except Exception as exc:
+                            st.error(f"Nie udało się dodać zadania: {exc}")
 
     with tab_plans:
         st.header("Plany i cykl planistyczny")
@@ -220,36 +332,75 @@ def main():
                 prep = completion_percent(prep_tasks)
                 is_active = p.get("status_operacyjny") == "active"
                 with st.container(border=True):
+                    if is_active:
+                        st.markdown('<span class="active-plan-marker">active</span><span class="active-plan-badge">PLAN AKTYWNY OPERACYJNIE</span>', unsafe_allow_html=True)
                     left, right = st.columns([3, 1])
                     left.subheader(display_plan_name(p))
                     right.caption(plan_status(p))
                     left.caption(f"{op_status(p)} · klauzula: {p.get('klauzula_tajnosci', '—')}")
-                    c1, c2 = st.columns([1, 2])
-                    c1.metric("Zadania przygotowawcze", len(prep_tasks))
-                    c2.metric("Przygotowanie PRZ", f"{prep:.0f}%" if prep is not None else "Brak zadań PRZ")
-                    if prep is not None:
-                        if prep >= 100:
-                            st.success(f"Przygotowanie zakończone · {prep:.0f}%")
-                        elif prep >= 50:
-                            st.warning(f"Przygotowanie w toku · {prep:.0f}%")
-                        else:
-                            st.error(f"Niski stopień przygotowania · {prep:.0f}%")
-                        with st.expander("Postęp poszczególnych zadań przygotowawczych"):
-                            for prep_task in prep_tasks:
-                                task_pct = clamp_progress(prep_task) * 100
-                                task_left, task_right = st.columns([4, 1])
-                                task_left.write(prep_task.get("nazwa_zadania", "Zadanie przygotowawcze"))
-                                if task_pct >= 100:
-                                    task_right.success(f"{task_pct:.0f}%")
-                                elif task_pct >= 50:
-                                    task_right.warning(f"{task_pct:.0f}%")
-                                else:
-                                    task_right.error(f"{task_pct:.0f}%")
-                    else:
-                        st.caption("Plan nie zawiera zadań przygotowawczych.")
                     if is_active:
                         real = completion_percent(real_tasks_for_plan)
-                        st.metric("Realizacja zadań REAL", f"{real:.0f}%" if real is not None else "Brak zadań REAL")
+                        st.metric("Zadania zrealizowane REAL", f"{real:.0f}%" if real is not None else "Brak zadań REAL")
+                        if real is not None:
+                            st.progress(real / 100, text=f"Realizacja operacyjna: {real:.0f}%")
+                    else:
+                        c1, c2 = st.columns([1, 2])
+                        c1.metric("Zadania przygotowawcze", len(prep_tasks))
+                        c2.metric("Przygotowanie PRZ", f"{prep:.0f}%" if prep is not None else "Brak zadań PRZ")
+                        if prep is not None:
+                            if prep >= 100:
+                                st.success(f"Przygotowanie zakończone · {prep:.0f}%")
+                            elif prep >= 50:
+                                st.warning(f"Przygotowanie w toku · {prep:.0f}%")
+                            else:
+                                st.error(f"Niski stopień przygotowania · {prep:.0f}%")
+                            with st.expander("Postęp poszczególnych zadań przygotowawczych"):
+                                for prep_task in prep_tasks:
+                                    task_pct = clamp_progress(prep_task) * 100
+                                    task_left, task_right = st.columns([4, 1])
+                                    task_left.write(prep_task.get("nazwa_zadania", "Zadanie przygotowawcze"))
+                                    if task_pct >= 100:
+                                        task_right.success(f"{task_pct:.0f}%")
+                                    elif task_pct >= 50:
+                                        task_right.warning(f"{task_pct:.0f}%")
+                                    else:
+                                        task_right.error(f"{task_pct:.0f}%")
+                        else:
+                            st.caption("Plan nie zawiera zadań przygotowawczych.")
+                    # Expand one level only: plans owned by the user's direct reports.
+                    subordinate_plan_rows = [
+                        child for child in plans
+                        if str(child.get("id_planu_nadrzednego") or "") == pid
+                        and owner_by_plan.get(str(child.get("id_planu"))) in scope_direct_ids
+                    ]
+                    if subordinate_plan_rows:
+                        with st.expander("Realizacja planu przez jednostki bezpośrednio podległe"):
+                            for child_plan in sorted(subordinate_plan_rows, key=lambda x: display_plan_name(x).casefold()):
+                                child_pid = str(child_plan.get("id_planu"))
+                                child_owner_id = owner_by_plan.get(child_pid, "")
+                                child_owner_name = units_by_id.get(child_owner_id, {}).get("nazwa", "Jednostka")
+                                child_tasks = [t for t in tasks if str(t.get("id_planu")) == child_pid and str(child_owner_id) in {str(x) for x in t.get("id_jednostek", [])}]
+                                child_real_tasks = [t for t in child_tasks if t.get("typ_zadania") == "REAL"]
+                                child_pct = completion_percent(child_real_tasks) if child_plan.get("status_operacyjny") == "active" else None
+                                st.markdown(f"**{child_owner_name}** — {display_plan_name(child_plan)}")
+                                approval_date = child_plan.get("data_zatwierdzeina") or child_plan.get("data_zatwierdzenia")
+                                approval_label = str(approval_date)[:10] if approval_date else "data nieznana"
+                                st.caption(f"{plan_status(child_plan)} · {approval_label}")
+                                child_active = child_plan.get("status_operacyjny") == "active"
+                                st.write(f"Stan: plan {'aktywny' if child_active else 'nieaktywny'}")
+                                if child_active:
+                                    completed = (sum(1 for task in child_real_tasks if clamp_progress(task) >= 1.0) / len(child_real_tasks) * 100) if child_real_tasks else None
+                                    if completed is None:
+                                        st.caption("Zadań zrealizowanych: brak zadań REAL")
+                                    else:
+                                        st.progress(completed / 100, text=f"Zadań zrealizowanych: {completed:.0f}%")
+                                else:
+                                    child_prep_tasks = [task for task in child_tasks if task.get("typ_zadania") == "PRZ"]
+                                    prepared = (sum(1 for task in child_prep_tasks if clamp_progress(task) >= 1.0) / len(child_prep_tasks) * 100) if child_prep_tasks else None
+                                    if prepared is None:
+                                        st.caption("Wykonanych zadań przygotowawczych: brak zadań PRZ")
+                                    else:
+                                        st.progress(prepared / 100, text=f"Wykonanych zadań przygotowawczych: {prepared:.0f}%")
                     # Before activation REAL tasks are not shown as an operational progress metric.
                     if p.get("data_przegladu"):
                         try:
@@ -283,7 +434,15 @@ def main():
                                 st.rerun()
                             except Exception as exc:
                                 st.error(f"Nie udało się przekazać planu: {exc}")
-                    if p.get("status_planu") == "approved" and not is_active and owner_by_plan.get(pid) == own_unit_id:
+                    directly_subordinate_unit_ids = {
+                        str(unit.get("id")) for unit in units
+                        if str(unit.get("id_jednostki_nadrzednej") or "") == own_unit_id
+                    }
+                    can_activate_from_scope = (
+                        owner_by_plan.get(pid) == own_unit_id
+                        or owner_by_plan.get(pid) in directly_subordinate_unit_ids
+                    )
+                    if p.get("status_planu") == "approved" and not is_active and can_activate_from_scope:
                         if st.button("Aktywuj plan i podplany", key=f"activate-{pid}", type="primary"):
                             try:
                                 post(f"/api/plans/{pid}/activate", person_id)
@@ -295,7 +454,7 @@ def main():
         # 2. One editor for plan metadata, tasks, and subordinate requirements.
         with plan_tabs[1]:
             st.subheader("Opracowanie planu")
-            st.caption("Wymogi dla jednostek podrzędnych definiujesz w tym samym formularzu. Najpierw możesz zachować wersję roboczą formularza, a dopiero po uzupełnieniu utworzyć projekt planu.")
+            st.caption("Opracowanie oznacza utworzenie nowego planu — również wtedy, gdy odpowiadasz na wymóg otrzymany od jednostki nadrzędnej. W takim przypadku wybierz właściwy plan nadrzędny; istniejący projekt wybierz z listy tylko wtedy, gdy chcesz kontynuować jego edycję. Wymogi dla jednostek podrzędnych definiujesz w tym samym formularzu.")
             editable_plans = [p for p in plans if owner_by_plan.get(str(p.get("id_planu"))) == own_unit_id and p.get("status_planu") in ("editing", "draft", "rejected")]
             edit_options = {"Nowy plan": None}
             edit_options.update({f"{display_plan_name(p)} · {p.get('id_planu')} · {plan_status(p)}": str(p.get("id_planu")) for p in editable_plans})
@@ -313,10 +472,13 @@ def main():
             editor_selection_changed = st.session_state.get("_last_plan_editor_key") != editor_key
 
             default_parent_options = {"— bez planu nadrzędnego —": None}
+            own_parent_unit_id = str(units_by_id.get(own_unit_id, {}).get("id_jednostki_nadrzednej") or "")
             for plan in plans:
                 plan_id_value = str(plan.get("id_planu"))
                 plan_owner = owner_by_plan.get(plan_id_value)
-                if plan_owner == own_unit_id or plan_id_value in visible_scope_plans:
+                # Own plans, plans in the selected display scope, and plans owned by
+                # the direct superior are eligible parent codes. No sibling unit's plans.
+                if plan_owner == own_unit_id or plan_owner == own_parent_unit_id or plan_id_value in visible_scope_plans:
                     default_parent_options[f"{display_plan_name(plan)} · {plan_id_value}"] = plan_id_value
             for requirement_item in received_requirements:
                 parent_id = str(requirement_item.get("id_planu_nadrzednego"))
@@ -344,10 +506,58 @@ def main():
             ]
             if not default_task_rows:
                 default_task_rows = [{"Nazwa zadania": "", "Typ": "PRZ"}]
+            parent_label = st.selectbox("Plan nadrzędny", parent_labels, key=parent_widget_key, disabled=is_edit)
+            parent_code = str(default_parent_options[parent_label] or "")
+            if is_edit:
+                plan_id_value = str(selected_plan.get("id_planu", ""))
+                st.text_input("Kod planu", value=plan_id_value, disabled=True, key=f"plan-code-{editor_key}")
+            else:
+                suffix_key = f"plan-code-suffix-{editor_key}"
+                suffix = st.text_input(
+                    "Oznaczenie poziomu (jedna litera)", value=st.session_state.get(suffix_key, ""),
+                    max_chars=1, placeholder="np. R, K lub E", key=suffix_key,
+                    help="Kod zostanie utworzony automatycznie jako kod planu nadrzędnego + jedna wielka litera. Dla planu głównego wpisz jedną literę.",
+                ).strip().upper()
+                plan_id_value = f"{parent_code}{suffix}" if parent_code else suffix
+                st.caption(f"Kod planu: **{plan_id_value or 'uzupełnij oznaczenie'}**")
+            # Requirement fields are separate for each selected subordinate unit.
+            st.markdown("**Wymogi dla jednostek podrzędnych**")
+            if child_units:
+                selected_children = st.multiselect(
+                    "Jednostki zobowiązane do przygotowania planów",
+                    options=[str(u["id"]) for u in child_units],
+                    default=existing_target_ids if is_edit else [],
+                    format_func=lambda uid: child_by_id.get(str(uid), {}).get("nazwa", str(uid)),
+                    key=f"requirement-units-{editor_key}",
+                )
+                requirement_values = {}
+                for child_id in selected_children:
+                    existing_req = next((r for r in existing_requirements if str(r.get("id_jednostki")) == str(child_id)), {})
+                    with st.container(border=True):
+                        child_name = child_by_id.get(str(child_id), {}).get("nazwa", str(child_id))
+                        req_desc = st.text_area(
+                            f"Wymogi dla: {child_name}", value=str(existing_req.get("opis", "")),
+                            placeholder="Wymagany zakres, elementy planu i procedury…",
+                            key=f"requirement-description-{editor_key}-{child_id}",
+                        )
+                        req_default = date.today() + timedelta(days=30)
+                        try:
+                            if existing_req.get("termin"):
+                                req_default = date.fromisoformat(str(existing_req["termin"])[:10])
+                        except ValueError:
+                            pass
+                        req_deadline = st.date_input(
+                            "Termin przygotowania planu", value=req_default,
+                            key=f"requirement-deadline-{editor_key}-{child_id}",
+                        )
+                        requirement_values[str(child_id)] = {"opis": req_desc, "termin": req_deadline}
+            else:
+                selected_children, requirement_values = [], {}
+                st.info("Ta jednostka nie ma bezpośrednio podległych jednostek w dostępnych danych.")
+
             with st.form(f"plan-editor-form-{editor_key}", clear_on_submit=False):
-                plan_id_value = st.text_input("Kod planu", value=str(selected_plan.get("id_planu", "")), placeholder="np. PLAN-2026-01", disabled=is_edit, key=f"plan-code-{editor_key}")
-                plan_name_value = st.text_input("Nazwa planu", value=str(selected_plan.get("nazwa_dokumentu", st.session_state.get("child_plan_title", ""))), placeholder="Plan przygotowania do działania…", key=name_widget_key)
-                parent_label = st.selectbox("Plan nadrzędny", parent_labels, key=parent_widget_key)
+                st.markdown("**Informacje dodatkowe**")
+                plan_name_value = st.text_input("Nazwa planu", value=str(selected_plan.get("nazwa_dokumentu", st.session_state.get("child_plan_title", ""))), placeholder="Np. Plan ochrony i reagowania na powódź…", key=name_widget_key)
                 classification = st.selectbox("Klauzula tajności", CLASSIFICATIONS, index=CLASSIFICATIONS.index(selected_plan.get("klauzula_tajnosci", "jawne")) if selected_plan.get("klauzula_tajnosci", "jawne") in CLASSIFICATIONS else 0, key=f"classification-{editor_key}")
                 review_default = date.today() + timedelta(days=730)
                 try:
@@ -365,30 +575,6 @@ def main():
                                    "Typ": st.column_config.SelectboxColumn("Typ", options=["PRZ", "REAL"], required=True)},
                     key=f"task-editor-{editor_key}")
                 st.divider()
-                st.markdown("**Wymogi dla jednostek podrzędnych**")
-                if child_units:
-                    selected_children = st.multiselect(
-                        "Jednostki zobowiązane do przygotowania planów",
-                        options=[str(u["id"]) for u in child_units],
-                        default=existing_target_ids if is_edit else [],
-                        format_func=lambda uid: child_by_id.get(str(uid), {}).get("nazwa", str(uid)),
-                        key=f"requirement-units-{editor_key}")
-                    requirement_description = st.text_area(
-                        "Wymagania dla planów podrzędnych",
-                        value=str(existing_requirements[0].get("opis", "")) if existing_requirements else "",
-                        placeholder="Opisz wymagany zakres, elementy planu i procedury…",
-                        key=f"requirement-description-{editor_key}")
-                    req_default = date.today() + timedelta(days=30)
-                    try:
-                        if existing_requirements and existing_requirements[0].get("termin"):
-                            req_default = date.fromisoformat(str(existing_requirements[0]["termin"])[:10])
-                    except ValueError:
-                        pass
-                    requirement_deadline = st.date_input("Termin przygotowania planów podrzędnych", value=req_default, key=f"requirement-deadline-{editor_key}")
-                    st.caption("Opis i termin zostaną przypisane każdej wybranej jednostce. Wymogi można później zmienić, dopóki plan pozostaje projektem.")
-                else:
-                    selected_children, requirement_description, requirement_deadline = [], "", date.today() + timedelta(days=30)
-                    st.info("Ta jednostka nie ma bezpośrednio podległych jednostek w dostępnych danych.")
                 if is_edit and selected_plan.get("status_planu") == "editing":
                     save_draft = st.form_submit_button("Zapisz zmiany", type="secondary")
                     create_project = st.form_submit_button("Utwórz projekt planu", type="primary")
@@ -408,15 +594,19 @@ def main():
                     if task_name:
                         task_records.append({"id_zadania": f"TASK-{i+1:03d}", "nazwa_zadania": task_name, "typ_zadania": "REAL" if row.get("Typ") == "REAL" else "PRZ"})
                 requirements_payload = []
-                requirements_error = bool(selected_children and not str(requirement_description).strip())
-                if selected_children and str(requirement_description).strip():
-                    for child_id in selected_children:
-                        old = next((r for r in existing_requirements if str(r.get("id_jednostki")) == str(child_id)), {})
-                        requirements_payload.append({
-                            "id_jednostki": str(child_id), "opis": str(requirement_description).strip(),
-                            "termin": requirement_deadline.isoformat(), "status": old.get("status", "Oczekuje na plan"),
-                            **({"id_planu_podrzednego": old["id_planu_podrzednego"]} if old.get("id_planu_podrzednego") else {})
-                        })
+                requirements_error = False
+                for child_id in selected_children:
+                    req_values = requirement_values.get(str(child_id), {})
+                    description = str(req_values.get("opis", "")).strip()
+                    if not description:
+                        requirements_error = True
+                        continue
+                    old = next((r for r in existing_requirements if str(r.get("id_jednostki")) == str(child_id)), {})
+                    requirements_payload.append({
+                        "id_jednostki": str(child_id), "opis": description,
+                        "termin": req_values["termin"].isoformat(), "status": old.get("status", "Oczekuje na plan"),
+                        **({"id_planu_podrzednego": old["id_planu_podrzednego"]} if old.get("id_planu_podrzednego") else {})
+                    })
                 payload = {
                     "id_planu": clean_id, "nazwa_dokumentu": clean_name,
                     "sporzadzil": f"{me.get('imie','')} {me.get('nazwisko','')}".strip(),
@@ -428,8 +618,10 @@ def main():
                 }
                 if requirements_error:
                     st.error("Uzupełnij opis wymogów dla wybranych jednostek albo usuń ich zaznaczenie.")
-                elif len(clean_id) < 2 or len(clean_name) < 3:
-                    st.error("Podaj kod i nazwę planu.")
+                elif len(clean_name) < 3:
+                    st.error("Podaj nazwę planu.")
+                elif not clean_id or len(clean_id) > 64 or not clean_id.isalpha() or not clean_id.isupper() or (parent_code and (not clean_id.startswith(parent_code) or len(clean_id) != len(parent_code) + 1)) or (not parent_code and len(clean_id) != 1):
+                    st.error("Kod musi być tworzony hierarchicznie: kod planu nadrzędnego + dokładnie jedna wielka litera. Plan główny ma jednoliterowy kod.")
                 else:
                     try:
                         if is_edit:
@@ -510,7 +702,7 @@ def main():
         if not plotted: st.info("W aktualnym modelu danych nie ma współrzędnych geograficznych jednostek ani zadań. Mapa pokazuje podkład orientacyjny; nie przedstawia fikcyjnych markerów. Integrację z granicami administracyjnymi i geolokalizacją można włączyć po udostępnieniu tych danych przez warstwę Data.")
         else: st.caption(f"Liczba jednostek z dostępną lokalizacją: {plotted}")
 
-    with tab_analytics:
+    with tab_operational_analytics:
         from app.analytics_ui import (
             leaf_tasks, top_level_tasks, task_status_band, estimate_task_duration, days_until,
             unit_metrics, build_unit_task_rows,
@@ -644,5 +836,150 @@ def main():
                 st.write("- Prognoza czasu pozostałego jest ekstrapolacją dotychczasowego tempa, a nie gwarancją daty ukończenia.")
                 st.write("- Wskaźniki kadrowe i efektywnościowe są heurystykami, a nie oceną jakości pracy jednostek.")
                 st.write("- Wszystkie agregacje wykorzystują tylko dane zwrócone przez API po kontroli dostępu.")
+
+
+    with tab_analytics:
+        st.header("Analityk — historia i scenariusze postępu")
+        st.caption(
+            "Oddzielny moduł analityczny. Żądania przechodzą przez Presentation API i Access; "
+            "dane historyczne pochodzą z demonstracyjnego arkusza Excel, a nie z bieżących zadań operacyjnych."
+        )
+        if not is_national:
+            st.info(
+                "Ten demonstrator analityki historycznej nie zawiera mapowania zadań na jednostki. "
+                "Z tego powodu zagregowane wyniki globalne są dostępne wyłącznie w perspektywie krajowej "
+                "(Premier), aby nie ujawniać danych spoza zakresu jednostki."
+            )
+        else:
+            try:
+                snapshots_payload = get("/api/analytics/history/snapshots", person_id)
+                snapshots = snapshots_payload.get("snapshots", [])
+                if not snapshots:
+                    st.warning("Brak snapshotów historycznych. Sprawdź inicjalizację serwisu analytics-history.")
+                else:
+                    snapshot_ids = [str(x["snapshot_id"]) for x in snapshots]
+                    selected_snapshot = st.selectbox(
+                        "Snapshot do podsumowania", snapshot_ids,
+                        index=snapshot_ids.index("D+2") if "D+2" in snapshot_ids else len(snapshot_ids)-1,
+                        key="analytics_snapshot",
+                    )
+                    summary = get(
+                        f"/api/analytics/history/summary?snapshot_id={quote(selected_snapshot, safe="")}",
+                        person_id,
+                    )
+                    k1, k2, k3, k4 = st.columns(4)
+                    k1.metric("Zadania w próbce", summary.get("tasks", 0))
+                    k2.metric("Średni postęp", f"{float(summary.get('mean_progress', 0))*100:.1f}%")
+                    k3.metric("Zakończone", summary.get("completed_tasks", 0))
+                    k4.metric("Niezakończone", summary.get("incomplete_tasks", 0))
+                    st.caption(summary.get("data_note", "Dane demonstracyjne."))
+
+                    by_type = summary.get("by_type", {})
+                    if by_type:
+                        st.subheader("Postęp według typu zadania")
+                        type_rows = [
+                            {"Typ": typ, "Liczba zadań": val.get("tasks", 0),
+                             "Średni postęp (%)": round(float(val.get("mean_progress", 0))*100, 1),
+                             "Zakończone": val.get("completed_tasks", 0)}
+                            for typ, val in sorted(by_type.items())
+                        ]
+                        st.dataframe(pd.DataFrame(type_rows), use_container_width=True, hide_index=True)
+                        st.bar_chart(pd.DataFrame(type_rows).set_index("Typ")[["Średni postęp (%)"]])
+
+                    st.divider()
+                    st.subheader("Zmiany między snapshotami")
+                    c1, c2 = st.columns(2)
+                    from_snapshot = c1.selectbox("Od", snapshot_ids, index=0, key="analytics_from")
+                    to_snapshot = c2.selectbox(
+                        "Do", snapshot_ids,
+                        index=snapshot_ids.index("D+2") if "D+2" in snapshot_ids else len(snapshot_ids)-1,
+                        key="analytics_to",
+                    )
+                    if from_snapshot == to_snapshot:
+                        st.info("Wybierz dwa różne snapshoty, aby porównać zmianę.")
+                    else:
+                        changes = get(
+                            f"/api/analytics/history/changes?from_snapshot={quote(from_snapshot, safe="")}&to_snapshot={quote(to_snapshot, safe="")}&limit=5000",
+                            person_id,
+                        )
+                        change_rows = changes.get("changes", [])
+                        st.metric("Porównane zadania", changes.get("count", len(change_rows)))
+                        if change_rows:
+                            change_df = pd.DataFrame([{
+                                "ID zadania": x.get("task_id"),
+                                "Typ": x.get("task_type"),
+                                "Postęp przed (%)": round(float(x.get("progress_before", 0))*100, 1),
+                                "Postęp po (%)": round(float(x.get("progress_after", 0))*100, 1),
+                                "Zmiana (p.p.)": x.get("change_pp", 0),
+                                "Zmiana względna (%)": x.get("relative_change_pct"),
+                            } for x in change_rows])
+                            st.dataframe(change_df, use_container_width=True, hide_index=True)
+                        else:
+                            st.info("Brak porównywalnych rekordów.")
+
+                    st.divider()
+                    st.subheader("Scenariusz postępu")
+                    st.warning(
+                        "To ilustracyjna ekstrapolacja liniowa oparta na dwóch snapshotach oddalonych o dwa dni. "
+                        "Nie jest zwalidowaną prognozą i nie powinna służyć jako samodzielna podstawa decyzji."
+                    )
+                    fc1, fc2 = st.columns(2)
+                    base_snapshot = fc1.selectbox(
+                        "Snapshot bazowy", snapshot_ids,
+                        index=snapshot_ids.index("D+2") if "D+2" in snapshot_ids else len(snapshot_ids)-1,
+                        key="analytics_forecast_base",
+                    )
+                    days_ahead = fc2.number_input("Horyzont (dni)", min_value=1, max_value=30, value=2, step=1)
+                    if st.button("Uruchom scenariusz", type="primary", key="run_analytics_forecast"):
+                        result = post(
+                            "/api/analytics/simulations/progress", person_id,
+                            {"base_snapshot_id": base_snapshot, "days_ahead": int(days_ahead)},
+                        )
+                        st.session_state["analytics_last_forecast"] = result
+                    forecast = st.session_state.get("analytics_last_forecast")
+                    if forecast:
+                        st.caption(
+                            f"Metoda: {forecast.get('method')} · liczba wyników: {forecast.get('results_count', 0)}"
+                        )
+                        forecast_rows = [{
+                            "ID zadania": x.get("task_id"), "Typ": x.get("task_type"),
+                            "Postęp bazowy (%)": round(float(x.get("base_progress", 0))*100, 1),
+                            "Postęp scenariusza (%)": round(float(x.get("forecast_progress", 0))*100, 1),
+                            "Zmiana (p.p.)": x.get("forecast_change_pp", 0),
+                        } for x in forecast.get("results", [])]
+                        if forecast_rows:
+                            st.dataframe(pd.DataFrame(forecast_rows), use_container_width=True, hide_index=True)
+                        st.caption(forecast.get("warning", ""))
+            except Exception as exc:
+                st.error(f"Nie udało się wykonać analizy przez warstwę dostępową: {exc}")
+                st.caption("Sprawdź serwisy presentation, access oraz analytics-history.")
+
+    with tab_hierarchy:
+        st.header("Hierarchia jednostek")
+        st.caption("Bieżąca jednostka i maksymalnie dwa poziomy podległości. Kliknięcie „Otwórz” przełącza zakres analizy na wybraną jednostkę; tożsamość i uprawnienia konta pozostają bez zmian.")
+        root_id = own_unit_id if selected_scope == NATIONAL_SCOPE else str(selected_scope)
+        root_unit = units_by_id.get(root_id)
+        if root_unit:
+            st.markdown(f"### {root_unit.get('nazwa', root_id)}")
+            st.caption("Bieżący węzeł hierarchii")
+            level_one = sorted(direct_child_units(root_id, units), key=lambda u: u.get("nazwa", ""))
+            if not level_one:
+                st.info("Brak jednostek bezpośrednio podległych.")
+            for child in level_one:
+                child_id = str(child.get("id"))
+                with st.container(border=True):
+                    col_name, col_action = st.columns([4, 1])
+                    col_name.markdown(f"**{child.get('nazwa', child_id)}**")
+                    col_name.caption("Poziom 1")
+                    col_action.button("Otwórz", key=f"hierarchy-tab-{root_id}-{child_id}", use_container_width=True, on_click=_select_scope, args=(child_id,))
+                    grandchildren = sorted(direct_child_units(child_id, units), key=lambda u: u.get("nazwa", ""))
+                    for grandchild in grandchildren:
+                        grandchild_id = str(grandchild.get("id"))
+                        subcol, subaction = st.columns([4, 1])
+                        subcol.write(f"↳ {grandchild.get('nazwa', grandchild_id)}")
+                        subcol.caption("Poziom 2")
+                        subaction.button("Otwórz", key=f"hierarchy-tab-{child_id}-{grandchild_id}", use_container_width=True, on_click=_select_scope, args=(grandchild_id,))
+        else:
+            st.warning("Nie udało się ustalić bieżącego węzła hierarchii.")
 
 if __name__ == "__main__": main()

@@ -58,6 +58,7 @@ services:
       dockerfile: ./services/analytics_history/Dockerfile
     environment:
       ANALYTICS_HISTORY_DB: /data/analytics_history.db
+      OPERATIONAL_ANALYTICS_DB: /data/operational_analytics.db
       ACCESS_SERVICE_URL: http://access:8000
       HISTORY_PERSON_ID: demo-premier
       HISTORY_COLLECTION_INTERVAL_SECONDS: "86400"
