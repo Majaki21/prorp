@@ -17,8 +17,9 @@ services:
     container_name: pro-rp-access
     environment:
       DATA_SERVICE_URL: http://data:8000
+      ANALYTICS_HISTORY_SERVICE_URL: http://analytics-history:8010
       # PoC only; remove in production and authenticate via a trusted IdP.
-      DEFAULT_PERSON_ID: demo-U-PRM
+      DEFAULT_PERSON_ID: demo-premier
     ports:
       - "8002:8000"
     depends_on:
@@ -36,24 +37,6 @@ services:
     depends_on:
       - access
 
-  analytics-history:
-    build:
-      context: .
-      dockerfile: ./services/analytics_history/Dockerfile
-    container_name: pro-rp-analytics-history
-    environment:
-      ANALYTICS_HISTORY_DB: /data/analytics_history.db
-      ACCESS_SERVICE_URL: http://access:8000
-      # Konto demonstracyjne; sprawdź, czy jego zakres uprawnień obejmuje analizowane zadania.
-      HISTORY_PERSON_ID: demo-U-PRM
-      # Automatyczne zbieranie co 24 h; 0 wyłącza harmonogram.
-      HISTORY_COLLECTION_INTERVAL_SECONDS: "86400"
-    volumes:
-      - analytics-history-data:/data
-    depends_on:
-      - access
-    ports:
-      - "127.0.0.1:8010:8010"
   presentation:
     build:
       context: .
@@ -61,13 +44,27 @@ services:
     environment:
       ACCESS_SERVICE_URL: http://access:8000
       SIMULATION_SERVICE_URL: http://simulation:8000
-      ANALYTICS_HISTORY_URL: http://analytics-history:8010
     ports:
       - "8000:8000"
       - "8501:8501"
     depends_on:
       - access
       - simulation
+      - analytics-history
+
+  analytics-history:
+    build:
+      context: .
+      dockerfile: ./services/analytics_history/Dockerfile
+    environment:
+      ANALYTICS_HISTORY_DB: /data/analytics_history.db
+      ACCESS_SERVICE_URL: http://access:8000
+      HISTORY_PERSON_ID: demo-premier
+      HISTORY_COLLECTION_INTERVAL_SECONDS: "86400"
+    volumes:
+      - analytics-history-data:/data
+    depends_on:
+      - access
 
 volumes:
   pro-rp-data:

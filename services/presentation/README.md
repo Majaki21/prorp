@@ -69,3 +69,11 @@ pozostałych komponentów.
 Interfejs Streamlit pobiera jednostki, plany, zadania i stan operacyjny z lokalnego API Presentation (`PRESENTATION_API_URL`). API prezentacji przekazuje żądania do Access Service, a nagłówek `X-Person-Id` jest przekazywany bez zmian. Lista kont demonstracyjnych pochodzi z endpointu `/api/demo-identities`, który korzysta z `/demo-identities` w serwisie access. Warstwa prezentacji nie łączy się bezpośrednio z Data Service.
 
 Wybór konta w pasku bocznym jest mechanizmem demonstracyjnym, nie uwierzytelnianiem produkcyjnym. Endpoint `/demo-identities` należy zastąpić zaufanym dostawcą tożsamości lub wyłączyć przed wdrożeniem produkcyjnym.
+
+## Widok jednostki i hierarchia planów
+
+- „Plany tej jednostki” pokazuje wyłącznie plany przypisane bezpośrednio do wybranej jednostki.
+- „Plany jednostek podległych” jest osobnym przeglądem i prezentuje jedynie plany oraz agregaty zadań dostępne dla bieżącej tożsamości.
+- „Zadania tej jednostki” obejmuje tylko zadania z jej własnych planów. Zadania jawnie przypisane do jednostek podrzędnych nie są wliczane do szczegółowego widoku jednostki nadrzędnej.
+- Każde zadanie jest prezentowane jako pojedynczy rozwijany element, który pobiera szczegóły z endpointu API. Usunięto osobny, powtarzający listę zadań widok „Wszystkie zadania”.
+- „Hierarchia i wykonawcy” pozostaje widokiem nawigacyjnym planów; pokazuje strukturę, status, klauzulę i wykonawców bez ponownego renderowania list zadań. Plan O jest wyróżniony jako plan krajowy.

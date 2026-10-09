@@ -124,3 +124,36 @@ def test_demo_identity_picker_exposes_only_synthetic_accounts(monkeypatch):
     assert [person["id_osoby"] for person in payload] == ["demo-A"]
     assert payload[0]["nazwa_jednostki"] == "Jednostka A"
     assert "pracownicy" not in payload[0]
+
+
+def test_requirements_are_visible_to_the_directly_targeted_unit(monkeypatch):
+    child_person = {
+        "id_osoby": "demo-B", "imie": "Demo", "nazwisko": "Child",
+        "id_jednostki": "B", "stanowisko": "Demo", "klauzula_tajnosci": "poufne", "aktywna": True,
+    }
+    plans_with_requirement = [dict(plan) for plan in PLANS]
+    plans_with_requirement[0]["wymogi"] = [{
+        "id_jednostki": "B", "opis": "Przygotuj plan podrzędny",
+        "termin": "2026-11-01", "status": "Oczekuje na plan",
+    }]
+
+    async def fake_child_data_get(path, params=None):
+        if path == "/people/demo-B":
+            return child_person
+        if path == "/people":
+            return [child_person]
+        if path == "/units":
+            return UNITS
+        if path == "/plans":
+            return plans_with_requirement
+        if path == "/cooperation":
+            return []
+        raise AssertionError(f"Unexpected data request: {path} {params}")
+
+    monkeypatch.setattr(access, "data_get", fake_child_data_get)
+    monkeypatch.setattr(access, "DEFAULT_PERSON_ID", "")
+    response = TestClient(access.app).get("/requirements", headers={"X-Person-Id": "demo-B"})
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+    assert response.json()[0]["id_planu_nadrzednego"] == "P-PUBLIC"
+    assert response.json()[0]["wymog"]["opis"] == "Przygotuj plan podrzędny"

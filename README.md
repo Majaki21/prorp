@@ -147,32 +147,46 @@ Serwis `access` filtruje plany, zadania, jednostki i stan operacyjny według to�
 
 W tej wersji `DEFAULT_PERSON_ID=demo-U-PRM` jest ustawione wyłącznie po to, aby istniejący interfejs demonstracyjny nadal działał bez ekranu logowania. To konto ma klauzulę `jawne`. W innych klientach można przekazać `X-Person-Id`. Przed rzeczywistym wdrożeniem należy zastąpić oba mechanizmy integracją z zaufanym dostawcą tożsamości.
 
+## Scenariusz demonstracyjny kontroli dostępu
 
-## Zintegrowana historia analityczna (dodatek)
+Przy starcie Data Service stosuje idempotentną konfigurację scenariusza PoC. W selektorze interfejsu dostępne są trzy rozróżnialne konta:
 
-Dodano niezależny serwis `analytics-history` pod adresem `http://localhost:8010`.
-Przechowuje historię postępu w osobnym wolumenie `analytics-history-data`; nie zapisuje do operacyjnej bazy `pro-rp-data`.
+- `demo-premier` — Donald Tusk, konto demonstracyjne poziomu krajowego, klauzula `scisle_tajne`; widzi wszystkie jednostki, plany i zadania w demonstratorze.
+- `demo-kgp` — Jan Kowalski, fikcyjna postać demonstracyjna Komendanta Głównego Policji, klauzula `tajne`; widzi planowanie Policji w swojej hierarchii.
+- `demo-kgpsp` — Anna Nowak, fikcyjna postać demonstracyjna Komendanta Głównego PSP, klauzula `zastrzezone`; widzi planowanie PSP w swojej hierarchii.
 
-Po uruchomieniu całego projektu:
+Plany i zadania Policji (ORP/ORPP/ORPPP oraz PP/PPP/PPPP) są w tym scenariuszu oznaczone jako `tajne`; odpowiadające im plany i zadania PSP (ORS/ORSS/ORSSS oraz PS/PSS/PSSS) jako `zastrzezone`. Pozostałe dane zachowują poziom z seedów.
+
+Relacja współpracy jest kierunkowa: `U-KGPSP` udostępnia `U-KGP` wyłącznie agregat postępu. Endpoint `GET /collaboration-summary` zwraca nazwę jednostki współpracującej i liczby agregatowe, bez identyfikatorów, nazw ani szczegółów poszczególnych zadań. Nie rozszerza ona zakresu dostępu do `/tasks`, `/plans` ani `/units`. W ten sposób KGP może zobaczyć np. liczbę zrealizowanych zadań PSP, a konto PSP nie otrzymuje analogicznego dostępu do danych Policji.
+
+Konta i klauzule są syntetycznym scenariuszem hackathonowym, a nie rzeczywistą klasyfikacją informacji ani produkcyjnym systemem uwierzytelniania.
+
+## Cykl życia planów (aktualizacja PoC)
+
+- `status_operacyjny` rozdziela stan operacyjny (`prepared` / `active`) od formalnego `status_planu`.
+- Zadania mają `typ_zadania` (`PRZ` / `REAL`). W nieaktywnych planach REAL są zaplanowane i mają 0%; PRZ zachowują postęp przygotowania.
+- `POST /api/plans/{plan_id}/activate` aktywuje wskazany plan i całe poddrzewo. Nie wymaga 100% przygotowania; warstwa Access sprawdza uprawnienie jednostki właścicielskiej lub bezpośrednio nadrzędnej.
+- `PATCH /api/tasks/{plan_id}/{task_id}/progress` umożliwia aktualizację REAL dopiero po aktywacji i tylko jednostce, do której zadanie jest przypisane.
+- Interfejs zawiera osobne widoki „Plany przygotowane” i „Plany aktywne”. Procent przygotowania opiera się na PRZ, a operacyjna realizacja na REAL.
+- Aktywacje są rejestrowane w tabeli `plan_activation_audit`.
+
+## UI: przebudowany cykl planistyczny
+
+Warstwa Streamlit jest podzielona na cztery główne obszary:
+
+- **Obraz sytuacji** — aktywne plany, postęp zadań, zadania wymagające uwagi i budżet jednostek w aktualnym zakresie.
+- **Zadania** — filtrowalny rejestr zadań oraz karta szczegółów. Postęp PRZ można raportować po zatwierdzeniu planu, a postęp REAL po aktywacji planu; zapis jest egzekwowany przez Access.
+- **Plany** — lista planów, tworzenie projektów planów, wymogi kierowane do bezpośrednio podległych jednostek, przekazanie do zatwierdzenia, akceptacja i aktywacja.
+- **Mapa** — podkład mapowy bez fikcyjnych markerów. Markery pojawią się tylko wtedy, gdy źródłowe dane zawierają współrzędne.
+
+Model planu zawiera `data_przegladu` i `wymogi_json`. Kolejny przegląd jest sygnalizowany w UI, ale nie jest traktowany automatycznie jako wygaśnięcie planu. Zapis projektu, wymogów, przekazania i zatwierdzenia odbywa się przez Presentation API i Access, a dopiero potem w Data Service.
+
+Po zmianie kodu uruchom ponownie środowisko:
 
 ```bash
 docker compose up --build
 ```
 
-Dokumentacja API: `http://localhost:8010/docs`.
+UI: http://localhost:8501 · Presentation API: http://localhost:8000/health
 
-Przydatne endpointy:
-
-- `GET /health`
-- `GET /history/snapshots`
-- `GET /history/summary?snapshot_id=D%2B2`
-- `GET /history/changes?from_snapshot=D&to_snapshot=D%2B2`
-- `GET /history/tasks/PRZ-001`
-- `POST /history/collect`
-- `GET /history/collections`
-- `GET /history/tasks/{task_id}/timeline`
-- `POST /simulations/progress` z JSON `{"base_snapshot_id":"D+2","days_ahead":2}`
-
-**Ważne ograniczenie:** historia z Excela (100 zadań, snapshoty `D` i `D+2`) to demonstracyjny zestaw niezależny od operacyjnej bazy PRO RP. Automatyczne zbieranie przez Access zapisuje tylko zadania widoczne dla `HISTORY_PERSON_ID`; konto `demo-U-PRM` może widzieć jedynie część zadań. Przed interpretacją wyników sprawdź `GET /history/collections` i ustaw konto techniczne o zatwierdzonym, właściwym zakresie uprawnień. Dwa snapshoty nie uzasadniają wiarygodnej prognozy — ekstrapolacja jest wyłącznie demonstracyjna.
-
-Serwis nie jest jeszcze wpięty do interfejsu Streamlit. Korzysta się z niego osobno przez API na porcie 8010.
+Testy w tym środowisku: `pytest -q` (31 testów). W środowisku implementacyjnym nie było dostępnego polecenia Docker, więc nie wykonano tutaj testu uruchomienia całego stosu w kontenerach.

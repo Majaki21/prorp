@@ -23,6 +23,7 @@ class Zadania(BaseModel):
     data_utworzenia: date
     data_aktualizacji: date
     status: bool = False
+    typ_zadania: Literal["PRZ", "REAL"] = "REAL"
     poziom_realizacji: float = Field(default=0.0, ge=0.0, le=1.0)
     koszt: int = Field(default=0, ge=0)
     zasoby: dict = Field(default_factory=dict)
@@ -52,6 +53,9 @@ class Plan(BaseModel):
     data_utworzenia: date
     data_zatwierdzeina: date | None = None
     status_planu: Literal["draft", "in_review", "approved", "rejected"] = "draft"
+    status_operacyjny: Literal["prepared", "active"] = "prepared"
+    data_aktywacji: str | None = None
+    aktywowany_przez: str | None = None
     klauzula_tajnosci: Klauzula = "scisle_tajne"
 
 
