@@ -9,6 +9,7 @@ import folium
 from streamlit_folium import st_folium
 
 PRESENTATION_API_URL = os.getenv("PRESENTATION_API_URL", "http://localhost:8000")
+ANALYTICS_HISTORY_URL = os.getenv("ANALYTICS_HISTORY_URL", "http://localhost:8010")
 RADOM_CENTER = [51.4027, 21.1471]
 
 
@@ -135,8 +136,8 @@ def main():
     c3.metric("Zadania", total_tasks)
     c4.metric("Śr. realizacja", f"{avg_completion * 100:.0f}%")
 
-    tab_unit, tab_plans, tab_all, tab_map = st.tabs([
-        "Widok jednostki", "Hierarchia planów", "Wszystkie zadania", "Mapa"
+    tab_unit, tab_plans, tab_all, tab_map, tab_analytics = st.tabs([
+        "Widok jednostki", "Hierarchia planów", "Wszystkie zadania", "Mapa", "Analiza historyczna"
     ])
 
     with tab_unit:
@@ -288,6 +289,98 @@ def main():
         with info_col:
             st.info("Mapa jest na razie podkładem demonstracyjnym. Zadania i jednostki nie mają współrzędnych geograficznych w źródłowych danych.")
             st.markdown("**Możliwe rozszerzenia:** regiony, lokalizacje infrastruktury, schrony, zasoby i warstwy scenariuszy.")
+
+    with tab_analytics:
+        st.subheader("Analiza historyczna realizacji zadań")
+        st.caption("Dane historyczne z osobnego mikroserwisu analitycznego. Dane z pliku Excel mają charakter demonstracyjny.")
+        try:
+            analytics_health = httpx.get(f"{ANALYTICS_HISTORY_URL}/health", timeout=5)
+            analytics_health.raise_for_status()
+            snapshots_response = httpx.get(f"{ANALYTICS_HISTORY_URL}/history/snapshots", timeout=8)
+            snapshots_response.raise_for_status()
+            snapshots = snapshots_response.json().get("snapshots", [])
+            if not snapshots:
+                st.warning("Usługa odpowiada, ale nie ma dostępnych migawek historii.")
+            else:
+                snapshot_ids = [str(item["snapshot_id"]) for item in snapshots]
+                preferred_snapshot = "D+2" if "D+2" in snapshot_ids else snapshot_ids[-1]
+                selected_snapshot = st.selectbox(
+                    "Migawka do podsumowania", snapshot_ids,
+                    index=snapshot_ids.index(preferred_snapshot), key="analytics_snapshot"
+                )
+                summary_response = httpx.get(
+                    f"{ANALYTICS_HISTORY_URL}/history/summary",
+                    params={"snapshot_id": selected_snapshot}, timeout=8
+                )
+                summary_response.raise_for_status()
+                summary_data = summary_response.json()
+                m1, m2, m3 = st.columns(3)
+                m1.metric("Zadania w historii", summary_data.get("tasks", 0))
+                m2.metric("Ukończone", summary_data.get("completed_tasks", 0))
+                m3.metric("Nieukończone", summary_data.get("incomplete_tasks", 0))
+                st.metric("Średni poziom realizacji", f"{float(summary_data.get('mean_progress', 0))*100:.1f}%")
+                st.info(summary_data.get("data_note", "Dane historyczne mają charakter demonstracyjny."))
+
+                st.markdown("#### Zmiany między migawkami")
+                if len(snapshot_ids) >= 2:
+                    default_from = "D" if "D" in snapshot_ids else snapshot_ids[0]
+                    default_to = "D+2" if "D+2" in snapshot_ids else snapshot_ids[-1]
+                    c_from, c_to = st.columns(2)
+                    from_snapshot = c_from.selectbox("Migawka początkowa", snapshot_ids,
+                        index=snapshot_ids.index(default_from), key="analytics_from")
+                    to_snapshot = c_to.selectbox("Migawka końcowa", snapshot_ids,
+                        index=snapshot_ids.index(default_to), key="analytics_to")
+                    if from_snapshot == to_snapshot:
+                        st.warning("Wybierz dwie różne migawki, aby porównać zmiany.")
+                    else:
+                        changes_response = httpx.get(
+                            f"{ANALYTICS_HISTORY_URL}/history/changes",
+                            params={"from_snapshot": from_snapshot, "to_snapshot": to_snapshot, "limit": 500},
+                            timeout=8
+                        )
+                        changes_response.raise_for_status()
+                        changes_data = changes_response.json()
+                        changes_rows = changes_data.get("changes", [])
+                        if changes_rows:
+                            changes_df = pd.DataFrame([{
+                                "ID zadania": row.get("task_id"),
+                                "Typ zadania": row.get("task_type"),
+                                "Postęp przed": f"{float(row.get('progress_before', 0))*100:.1f}%",
+                                "Postęp po": f"{float(row.get('progress_after', 0))*100:.1f}%",
+                                "Zmiana (p.p.)": row.get("change_pp", 0),
+                            } for row in changes_rows])
+                            st.dataframe(changes_df, use_container_width=True, hide_index=True)
+                        else:
+                            st.info("Brak zmian do wyświetlenia dla wybranych migawek.")
+                else:
+                    st.info("Do porównania potrzebne są co najmniej dwie migawki.")
+
+                with st.expander("Demonstracyjna ekstrapolacja postępu"):
+                    days_ahead = st.slider("Liczba dni ekstrapolacji", min_value=1, max_value=30, value=2)
+                    if st.button("Oblicz scenariusz", key="analytics_forecast_button"):
+                        forecast_response = httpx.post(
+                            f"{ANALYTICS_HISTORY_URL}/simulations/progress",
+                            json={"base_snapshot_id": selected_snapshot, "days_ahead": days_ahead},
+                            timeout=15
+                        )
+                        forecast_response.raise_for_status()
+                        forecast_data = forecast_response.json()
+                        st.warning(forecast_data.get("warning", "To scenariusz demonstracyjny, nie zwalidowana prognoza."))
+                        forecast_rows = forecast_data.get("results", [])
+                        if forecast_rows:
+                            st.dataframe(pd.DataFrame([{
+                                "ID zadania": row.get("task_id"),
+                                "Postęp bazowy": f"{float(row.get('base_progress', 0))*100:.1f}%",
+                                "Postęp scenariuszowy": f"{float(row.get('forecast_progress', 0))*100:.1f}%",
+                                "Zmiana (p.p.)": row.get("forecast_change_pp", 0),
+                            } for row in forecast_rows]), use_container_width=True, hide_index=True)
+        except httpx.HTTPError as exc:
+            st.error("Nie można połączyć się z usługą analizy historycznej.")
+            st.caption(f"Adres usługi: {ANALYTICS_HISTORY_URL}")
+            st.code(str(exc))
+            st.info("Sprawdź, czy kontener analytics-history działa i czy usługa jest dostępna w sieci Docker Compose.")
+        except (ValueError, KeyError, TypeError) as exc:
+            st.error(f"Nie udało się odczytać odpowiedzi usługi analitycznej: {exc}")
 
     with st.expander("Diagnostyka API"):
         st.json({"identity": selected_person_id, "plans": len(plans), "units": len(units), "tasks": len(tasks),
