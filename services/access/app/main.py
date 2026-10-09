@@ -242,6 +242,7 @@ async def get_visible_units(
     visible_units, visible_plans, units, plans = await access_context(person)
     readable_ids = readable_plan_ids(person, plans, visible_plans)
     result = []
+    unit_by_id = {str(unit["id"]): unit for unit in units}
     for unit in units:
         uid = str(unit["id"])
         if uid not in visible_units:
@@ -254,6 +255,11 @@ async def get_visible_units(
             continue
         item = dict(unit)
         item["id_planow"] = [pid for pid in item.get("id_planow", []) if str(pid) in readable_ids]
+        parent_id = str(item.get("id_jednostki_nadrzednej") or "")
+        parent = unit_by_id.get(parent_id)
+        # Expose only the parent display name as organizational context; do not expose
+        # the parent's plans, budget, staff, or other record fields through this field.
+        item["nazwa_jednostki_nadrzednej"] = parent.get("nazwa") if parent else None
         # A caller can see their own roster, not personnel data of subordinate/peer units.
         if uid != str(person["id_jednostki"]):
             item["pracownicy"] = []
@@ -274,6 +280,9 @@ async def get_visible_unit(
         raise not_found()
     item = dict(unit)
     item["id_planow"] = [pid for pid in item.get("id_planow", []) if str(pid) in readable_ids]
+    parent_id = str(item.get("id_jednostki_nadrzednej") or "")
+    parent = next((u for u in units if str(u.get("id")) == parent_id), None)
+    item["nazwa_jednostki_nadrzednej"] = parent.get("nazwa") if parent else None
     if unit_id != str(person["id_jednostki"]):
         item["pracownicy"] = []
     return item
