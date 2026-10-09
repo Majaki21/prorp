@@ -8,34 +8,44 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 
-ACCESS_SERVICE_URL = os.getenv("ACCESS_SERVICE_URL", "http://access:8000")
-DATA_SERVICE_URL = os.getenv("DATA_SERVICE_URL", "http://data:8000")
+PRESENTATION_API_URL = os.getenv("PRESENTATION_API_URL", "http://localhost:8000")
 RADOM_CENTER = [51.4027, 21.1471]
 
 
-def fetch_json(url: str, params: dict | None = None):
+def fetch_json(url: str, params: dict | None = None, person_id: str | None = None):
+    """Fetch data through the Presentation API, carrying the selected demo identity to Access Service."""
+    headers = {"X-Person-Id": person_id} if person_id else {}
+
     async def _get():
         async with httpx.AsyncClient(timeout=8) as client:
-            response = await client.get(url, params=params)
+            response = await client.get(url, params=params, headers=headers)
             response.raise_for_status()
             return response.json()
     return asyncio.run(_get())
 
 
-def get_state():
-    return fetch_json(f"{ACCESS_SERVICE_URL}/state")
+def get_demo_identities():
+    return fetch_json(f"{PRESENTATION_API_URL}/api/demo-identities")
 
 
-def get_plans():
-    return fetch_json(f"{DATA_SERVICE_URL}/plans")
+def get_me(person_id: str):
+    return fetch_json(f"{PRESENTATION_API_URL}/api/me", person_id=person_id)
 
 
-def get_units():
-    return fetch_json(f"{DATA_SERVICE_URL}/units")
+def get_state(person_id: str):
+    return fetch_json(f"{PRESENTATION_API_URL}/api/state", person_id=person_id)
 
 
-def get_tasks(params: dict | None = None):
-    return fetch_json(f"{DATA_SERVICE_URL}/tasks", params=params)
+def get_plans(person_id: str):
+    return fetch_json(f"{PRESENTATION_API_URL}/api/plans", person_id=person_id)
+
+
+def get_units(person_id: str):
+    return fetch_json(f"{PRESENTATION_API_URL}/api/units", person_id=person_id)
+
+
+def get_tasks(person_id: str, params: dict | None = None):
+    return fetch_json(f"{PRESENTATION_API_URL}/api/tasks", params=params, person_id=person_id)
 
 
 def fmt_money(value):
@@ -48,17 +58,67 @@ def fmt_money(value):
 def main():
     st.set_page_config(page_title="PRO RP", page_icon="🛡️", layout="wide")
     st.title("Zintegrowana platforma PRO RP")
-    st.caption("Demonstrator — plany, jednostki i zadania operacyjne. Dostęp bez uwierzytelniania wyłącznie na potrzeby weryfikacji idei.")
+    st.caption("Demonstrator — widok danych jest filtrowany przez warstwę dostępową API.")
 
     try:
-        state = get_state()
-        plans = get_plans()
-        units = get_units()
-        tasks = get_tasks()
+        identities = get_demo_identities()
     except Exception as exc:
-        st.error(f"Nie udało się pobrać danych z API: {exc}")
-        st.info("Uruchom system przez `docker compose up --build` i sprawdź serwisy data/access.")
+        st.error(f"Nie udało się pobrać kont demonstracyjnych z warstwy dostępowej: {exc}")
+        st.info("Sprawdź stan serwisów presentation i access oraz endpoint `/api/demo-identities`.")
         return
+
+    if not identities:
+        st.error("Warstwa dostępowa nie zwróciła aktywnych kont demonstracyjnych.")
+        return
+
+    identity_by_id = {str(person["id_osoby"]): person for person in identities}
+    identity_options = list(identity_by_id)
+    preferred_identity = "demo-U-PRM" if "demo-U-PRM" in identity_by_id else identity_options[0]
+    if "selected_demo_person_id" not in st.session_state:
+        st.session_state["selected_demo_person_id"] = preferred_identity
+    if st.session_state["selected_demo_person_id"] not in identity_by_id:
+        st.session_state["selected_demo_person_id"] = preferred_identity
+
+    with st.sidebar:
+        st.header("Perspektywa dostępu")
+        selected_person_id = st.selectbox(
+            "Konto demonstracyjne",
+            options=identity_options,
+            format_func=lambda person_id: (
+                f"{identity_by_id[person_id]['imie']} {identity_by_id[person_id]['nazwisko']} — "
+                f"{identity_by_id[person_id]['nazwa_jednostki']}"
+            ),
+            key="selected_demo_person_id",
+        )
+        st.caption("Wybór konta służy wyłącznie demonstracji. Tożsamość jest przekazywana do API w nagłówku `X-Person-Id`.")
+
+    try:
+        me = get_me(selected_person_id)
+        state = get_state(selected_person_id)
+        plans = get_plans(selected_person_id)
+        units = get_units(selected_person_id)
+        tasks = get_tasks(selected_person_id)
+    except httpx.HTTPStatusError as exc:
+        status_code = exc.response.status_code if exc.response is not None else "?"
+        st.error(f"Warstwa dostępowa odrzuciła żądanie lub zwróciła błąd (HTTP {status_code}).")
+        st.code(str(exc))
+        st.info("Dane interfejsu są pobierane wyłącznie przez Access Service. Sprawdź uprawnienia wybranego konta i logi serwisu access.")
+        return
+    except Exception as exc:
+        st.error(f"Nie udało się pobrać danych z warstwy dostępowej: {exc}")
+        st.info("Uruchom system przez `docker compose up --build` i sprawdź serwisy presentation/access/data.")
+        return
+
+    with st.sidebar:
+        st.divider()
+        st.markdown("**Aktywna tożsamość**")
+        st.write(f"{me.get('imie', '')} {me.get('nazwisko', '')}")
+        st.caption(me.get("stanowisko") or "Konto demonstracyjne")
+        st.write(f"**Jednostka:** {identity_by_id.get(selected_person_id, {}).get('nazwa_jednostki', me.get('id_jednostki', '—'))}")
+        st.write(f"**Klauzula:** `{me.get('klauzula_tajnosci', '—')}`")
+        st.metric("Dostępne jednostki", len(units))
+        st.metric("Dostępne plany", len(plans))
+        st.metric("Dostępne zadania", len(tasks))
 
     plans_by_id = {p["id_planu"]: p for p in plans}
     units_by_id = {str(u["id"]): u for u in units}
@@ -230,9 +290,9 @@ def main():
             st.markdown("**Możliwe rozszerzenia:** regiony, lokalizacje infrastruktury, schrony, zasoby i warstwy scenariuszy.")
 
     with st.expander("Diagnostyka API"):
-        st.json({"plans": len(plans), "units": len(units), "tasks": len(tasks),
+        st.json({"identity": selected_person_id, "plans": len(plans), "units": len(units), "tasks": len(tasks),
                  "operational_tasks": len(state.get("tasks", [])), "resources": len(state.get("resources", [])),
-                 "data_service": DATA_SERVICE_URL})
+                 "presentation_api": PRESENTATION_API_URL})
 
 
 if __name__ == "__main__":

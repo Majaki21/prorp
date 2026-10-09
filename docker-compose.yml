@@ -42,7 +42,6 @@ services:
       dockerfile: ./services/presentation/Dockerfile
     environment:
       ACCESS_SERVICE_URL: http://access:8000
-      DATA_SERVICE_URL: http://data:8000
       SIMULATION_SERVICE_URL: http://simulation:8000
     ports:
       - "8000:8000"

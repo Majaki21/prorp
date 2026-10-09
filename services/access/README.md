@@ -1,31 +1,37 @@
-# Access Service
+# Access Service (PoC)
 
-Serwis `access` jest punktem egzekwowania reguł dostępu. Odczytuje dane z `data`, ale udostępnia klientom tylko zakres dopuszczony przez tożsamość, hierarchię jednostek, jawnie zarejestrowane relacje współpracy oraz klauzule tajności.
+All externally consumed PRO RP data APIs should be called through this service. The data service is an internal service and must not be exposed directly to clients.
 
-## Tożsamość w PoC
+## Identity for the demo
 
-- Nagłówek `X-Person-Id` wskazuje konto z tabeli `people`.
-- Konta nieaktywne są odrzucane.
-- `DEFAULT_PERSON_ID` jest opcjonalnym ułatwieniem demonstracyjnym, skonfigurowanym w `docker-compose.yml` jako `demo-U-PRM`, aby obecny interfejs działał bez formularza logowania. To **nie jest uwierzytelnianie produkcyjne**. Przed wdrożeniem należy usunąć tę zmienną i weryfikować tożsamość z zaufanego IdP/tokena; nie wolno ufać dowolnemu nagłówkowi ustawianemu przez niezaufanego klienta.
+- `X-Person-Id: demo-U-PRM` selects a seeded demo identity.
+- If `DEFAULT_PERSON_ID` is configured, requests without the header use that demo identity.
+- This is a PoC identity selector, **not authentication**. A production deployment must derive identity from a trusted IdP/session and clients must not be allowed to choose arbitrary person IDs.
 
-## Reguły PoC
+## Read endpoints
 
-1. Osoba widzi własną jednostkę i jednostki podrzędne.
-2. Jednostka równoległa jest dostępna tylko przy istniejącym wpisie w `unit_cooperation`; współpraca jest jawna, nie wynika z podobieństwa nazw ani wspólnego regionu.
-3. Klauzule są porządkowane od najniższej do najwyższej: `jawne`, `zastrzezone`, `poufne`, `tajne`, `scisle_tajne`.
-4. Nieznana klauzula powoduje odmowę dostępu (fail closed).
-5. Dostęp do zadania wymaga zarówno zakresu organizacyjnego, jak i dostępu do planu oraz odpowiedniej klauzuli planu i zadania.
+- `GET /me` — current demo identity.
+- `GET /units` and `GET /units/{unit_id}` — units within the person's organizational scope. `region_id` and `plan_id` are optional filters on the collection endpoint.
+- `GET /plans` and `GET /plans/{plan_id}` — plans within organizational scope and permitted classification.
+- `GET /tasks` — filtered task list. Optional filters: `plan_id`, `unit_id`, `region_id`, `limit`.
+- `GET /tasks/{plan_id}/{task_id}` — task details, with only visible unit references and a safe plan summary.
+- `GET /state` — filtered operational snapshot used by simulation.
+- `GET /health` — service health.
 
-## Endpointy
+Unknown classifications fail closed. Both a task's own classification and its plan's classification are checked. Inaccessible detail records return `404` to avoid disclosing whether a record exists. Unit visibility follows the hierarchy downward; existing direct cooperation relations may add the peer unit and its descendants. Cooperation is not transitive.
 
-- `GET /me` — aktywna tożsamość
-- `GET /state` — przefiltrowany stan dla symulacji
-- `GET /plans` — widoczne plany
-- `GET /tasks` — widoczne zadania (opcjonalne `plan_id`, `unit_id`)
-- `GET /units` — widoczne jednostki; lista pracowników jest zwracana tylko dla własnej jednostki
+The current data model does not contain a separate report entity or report-detail endpoint. Real-time progress fields are returned as part of task details. If dedicated reports are added later, they must use the same policy helpers before being exposed.
 
-Warstwa `data` nie publikuje portu hosta w Compose, aby zwykli klienci nie mogli ominąć kontroli w `access`.
+## Examples
 
-## Ograniczenia demonstratora
+```bash
+curl -H 'X-Person-Id: demo-U-PRM' http://localhost:8002/me
+curl -H 'X-Person-Id: demo-U-PRM' http://localhost:8002/plans
+curl -H 'X-Person-Id: demo-U-PRM' http://localhost:8002/plans/O
+curl -H 'X-Person-Id: demo-U-PRM' http://localhost:8002/tasks
+curl -H 'X-Person-Id: demo-U-PRM' http://localhost:8002/tasks/O/1
+curl -H 'X-Person-Id: demo-U-PRM' http://localhost:8002/units
+curl -H 'X-Person-Id: demo-U-PRM' http://localhost:8002/state
+```
 
-Nagłówek identyfikacyjny i domyślne konto są wyłącznie mechanizmem PoC. Nie należy używać tej wersji do rzeczywistych informacji niejawnych. Brakuje integracji z PKI/IdP, audytu decyzji dostępowych, zarządzania zgodami na współpracę i formalnej walidacji polityki bezpieczeństwa.
+Use `/docs` on the access service for the interactive OpenAPI specification. Do not call the internal data service from external clients.

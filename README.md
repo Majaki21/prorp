@@ -126,11 +126,16 @@ simulation operates on a snapshot.
 
 ## Dane demonstracyjne i trwałość
 
-- `GET http://localhost:8003/health` pokazuje liczbę planów, jednostek i zadań.
-- `GET http://localhost:8003/plans` — plany; `GET /plans/O` — plan i bezpośrednie podplany.
-- `GET http://localhost:8003/units?region_id=PL-MZ` — jednostki w regionie.
-- `GET http://localhost:8003/tasks?plan_id=ORW-PL-MZ` — zadania planu; dostępne filtry `unit_id` i `region_id`.
-- `GET http://localhost:8003/state` — uproszczony kontrakt używany przez Access i Simulation.
+Serwis `data` działa wyłącznie wewnątrz sieci Docker Compose i nie publikuje portu na hoście. Zewnętrzni klienci powinni korzystać z warstwy `access` na porcie `8002`:
+
+- `GET http://localhost:8002/health` — stan serwisu dostępowego.
+- `GET http://localhost:8002/plans` — plany dostępne dla bieżącej tożsamości; `GET /plans/O` — szczegóły dostępnego planu.
+- `GET http://localhost:8002/units` — jednostki w zakresie dostępu.
+- `GET http://localhost:8002/tasks?plan_id=ORW-PL-MZ` — dostępne zadania; obsługiwane filtry `unit_id`, `region_id` i `limit`.
+- `GET http://localhost:8002/tasks/{plan_id}/{task_id}` — szczegóły zadania.
+- `GET http://localhost:8002/state` — przefiltrowany stan operacyjny używany przez symulację.
+
+Wewnętrzny serwis `data` udostępnia surowe endpointy na porcie `8000` tylko kontenerom w sieci Compose. Nie należy kierować do niego zewnętrznych klientów ani traktować go jako API publicznego.
 
 Baza inicjalizuje się tylko wtedy, gdy tabela `plans` jest pusta. Zwykłe `docker compose down` nie usuwa wolumenu. Pełny reset danych demonstracyjnych: `docker compose down -v` (UWAGA: usuwa bazę). Aby ponownie wczytać nowy seed do pustej bazy, wykonaj reset wolumenu i `docker compose up --build`.
 
