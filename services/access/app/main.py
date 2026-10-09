@@ -66,10 +66,10 @@ async def access_context(
 ) -> tuple[set[str], set[str], list[dict[str, Any]], list[dict[str, Any]]]:
     """Return visible unit IDs, plan IDs, raw units and raw plans.
 
-    Unit visibility follows the hierarchy downward. Existing explicit cooperation
-    records can add a peer unit and that peer's descendants; cooperation is not
-    transitive. Document clearance is checked separately for every returned plan
-    and task.
+    Unit visibility follows the hierarchy downward. Only explicit `details` sharing
+    can add a peer unit. `aggregate` relations never expand detail visibility; they
+    are exposed through a separate summary endpoint. The synthetic Premier account
+    has a PoC-only global view.
     """
     units = await data_get("/units")
     plans = await data_get("/plans")
@@ -90,12 +90,21 @@ async def access_context(
                     visible.add(uid)
                     changed = True
 
+    if str(person.get("id_osoby")) == "demo-premier":
+        # Hackathon demo override: this synthetic account represents national-level oversight.
+        visible_units = set(unit_by_id)
+        visible_plans = set(plan_by_id)
+        return visible_units, visible_plans, units, plans
+
     visible_units = {own_id}
     add_descendants(visible_units)
 
-    # Cooperation is a direct relation, not an automatic transitive permission.
+    # A collaboration link does not automatically grant access to task details.
+    # Only an explicitly configured `details` scope expands organizational visibility.
     relations = await data_get("/cooperation", {"unit_id": own_id})
     for relation in relations:
+        if relation.get("sharing_level", "details") != "details":
+            continue
         a, b = str(relation["unit_id"]), str(relation["partner_unit_id"])
         peer = b if a == own_id else a if b == own_id else ""
         if peer and peer in unit_by_id:
@@ -354,6 +363,65 @@ async def get_visible_task(
         for uid in result["id_jednostek"] if uid in unit_by_id
     ]
     return result
+
+
+@app.get("/collaboration-summary")
+async def get_collaboration_summary(
+    x_person_id: str | None = Header(default=None, alias="X-Person-Id"),
+):
+    """Return only explicitly released aggregate counts from collaborating units.
+
+    A relation is directional: source `unit_id` releases aggregate information to
+    `partner_unit_id`. No plan names, task IDs, task names, or task-level records are
+    returned. This is the PoC's information-gate demonstration.
+    """
+    person = await resolve_person(x_person_id)
+    recipient_id = str(person["id_jednostki"])
+    relations = await data_get("/cooperation", {"unit_id": recipient_id})
+    inbound = [
+        r for r in relations
+        if str(r.get("partner_unit_id")) == recipient_id
+        and r.get("sharing_level") == "aggregate"
+    ]
+    if not inbound:
+        return []
+
+    units = await data_get("/units")
+    plans = await data_get("/plans")
+    tasks = await data_get("/tasks", {"limit": 5000})
+    unit_by_id = {str(u["id"]): u for u in units}
+    plan_by_id = {str(p["id_planu"]): p for p in plans}
+    summaries = []
+    for relation in inbound:
+        source_id = str(relation["unit_id"])
+        source = unit_by_id.get(source_id)
+        if source is None:
+            continue
+        source_plan_ids = {str(pid) for pid in source.get("id_planow", [])}
+        changed = True
+        while changed:
+            changed = False
+            for plan in plans:
+                pid = str(plan["id_planu"])
+                parent = str(plan.get("id_planu_nadrzednego") or "")
+                if parent in source_plan_ids and pid not in source_plan_ids:
+                    source_plan_ids.add(pid)
+                    changed = True
+        source_tasks = [
+            task for task in tasks
+            if str(task.get("id_planu")) in source_plan_ids
+        ]
+        completed = sum(1 for task in source_tasks if bool(task.get("status")))
+        summaries.append({
+            "jednostka": source.get("nazwa", source_id),
+            "liczba_zadan": len(source_tasks),
+            "liczba_zrealizowanych": completed,
+            "poziom_realizacji_proc": round(
+                100 * sum(float(task.get("poziom_realizacji", 0)) for task in source_tasks) / len(source_tasks), 1
+            ) if source_tasks else 0.0,
+            "zakres": "aggregate_only",
+        })
+    return summaries
 
 
 @app.get("/state", response_model=OperationalState)

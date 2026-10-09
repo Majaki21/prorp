@@ -35,3 +35,9 @@ curl -H 'X-Person-Id: demo-U-PRM' http://localhost:8002/state
 ```
 
 Use `/docs` on the access service for the interactive OpenAPI specification. Do not call the internal data service from external clients.
+
+## Demo bramek informacyjnych
+
+`GET /collaboration-summary` udostępnia wyłącznie agregaty z relacji kierunkowych `sharing_level=aggregate`, w której `partner_unit_id` wskazuje jednostkę aktualnego użytkownika. Relacja agregatowa nie dodaje jednostki współpracującej do zakresu widoczności szczegółowych planów, jednostek ani zadań. Dla pełnej widoczności szczegółów wymagany jest jawny zakres `sharing_level=details` i nadal obowiązują ograniczenia klauzul.
+
+Scenariusz seedowany dla demonstracji: `demo-premier` / `scisle_tajne` (globalny wgląd PoC), `demo-kgp` / `tajne`, `demo-kgpsp` / `zastrzezone`. Dane są fikcyjne poza użyciem nazwy premiera jako etykiety konta demonstracyjnego.

@@ -146,3 +146,17 @@ Dane statusów, budżetów, zasobów i przypisań są syntetyczne; nie stanowią
 Serwis `access` filtruje plany, zadania, jednostki i stan operacyjny według tożsamości osoby, hierarchii organizacyjnej, jawnie zapisanych relacji współpracy oraz klauzul tajności. Szczegóły endpointów, reguł i ograniczeń demonstracyjnych znajdują się w `services/access/README.md`.
 
 W tej wersji `DEFAULT_PERSON_ID=demo-U-PRM` jest ustawione wyłącznie po to, aby istniejący interfejs demonstracyjny nadal działał bez ekranu logowania. To konto ma klauzulę `jawne`. W innych klientach można przekazać `X-Person-Id`. Przed rzeczywistym wdrożeniem należy zastąpić oba mechanizmy integracją z zaufanym dostawcą tożsamości.
+
+## Scenariusz demonstracyjny kontroli dostępu
+
+Przy starcie Data Service stosuje idempotentną konfigurację scenariusza PoC. W selektorze interfejsu dostępne są trzy rozróżnialne konta:
+
+- `demo-premier` — Donald Tusk, konto demonstracyjne poziomu krajowego, klauzula `scisle_tajne`; widzi wszystkie jednostki, plany i zadania w demonstratorze.
+- `demo-kgp` — Jan Kowalski, fikcyjna postać demonstracyjna Komendanta Głównego Policji, klauzula `tajne`; widzi planowanie Policji w swojej hierarchii.
+- `demo-kgpsp` — Anna Nowak, fikcyjna postać demonstracyjna Komendanta Głównego PSP, klauzula `zastrzezone`; widzi planowanie PSP w swojej hierarchii.
+
+Plany i zadania Policji (ORP/ORPP/ORPPP oraz PP/PPP/PPPP) są w tym scenariuszu oznaczone jako `tajne`; odpowiadające im plany i zadania PSP (ORS/ORSS/ORSSS oraz PS/PSS/PSSS) jako `zastrzezone`. Pozostałe dane zachowują poziom z seedów.
+
+Relacja współpracy jest kierunkowa: `U-KGPSP` udostępnia `U-KGP` wyłącznie agregat postępu. Endpoint `GET /collaboration-summary` zwraca nazwę jednostki współpracującej i liczby agregatowe, bez identyfikatorów, nazw ani szczegółów poszczególnych zadań. Nie rozszerza ona zakresu dostępu do `/tasks`, `/plans` ani `/units`. W ten sposób KGP może zobaczyć np. liczbę zrealizowanych zadań PSP, a konto PSP nie otrzymuje analogicznego dostępu do danych Policji.
+
+Konta i klauzule są syntetycznym scenariuszem hackathonowym, a nie rzeczywistą klasyfikacją informacji ani produkcyjnym systemem uwierzytelniania.

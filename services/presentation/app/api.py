@@ -48,6 +48,11 @@ async def me(x_person_id: str | None = Header(default=None, alias="X-Person-Id")
     return await access_get("/me", person_id=x_person_id)
 
 
+@app.get("/api/collaboration-summary")
+async def collaboration_summary(x_person_id: str | None = Header(default=None, alias="X-Person-Id")):
+    return await access_get("/collaboration-summary", person_id=x_person_id)
+
+
 @app.get("/api/state")
 async def state(x_person_id: str | None = Header(default=None, alias="X-Person-Id")):
     return await access_get("/state", person_id=x_person_id)

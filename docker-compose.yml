@@ -18,7 +18,7 @@ services:
     environment:
       DATA_SERVICE_URL: http://data:8000
       # PoC only; remove in production and authenticate via a trusted IdP.
-      DEFAULT_PERSON_ID: demo-U-PRM
+      DEFAULT_PERSON_ID: demo-premier
     ports:
       - "8002:8000"
     depends_on:

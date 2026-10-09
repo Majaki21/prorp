@@ -36,6 +36,10 @@ def get_state(person_id: str):
     return fetch_json(f"{PRESENTATION_API_URL}/api/state", person_id=person_id)
 
 
+def get_collaboration_summary(person_id: str):
+    return fetch_json(f"{PRESENTATION_API_URL}/api/collaboration-summary", person_id=person_id)
+
+
 def get_plans(person_id: str):
     return fetch_json(f"{PRESENTATION_API_URL}/api/plans", person_id=person_id)
 
@@ -73,7 +77,7 @@ def main():
 
     identity_by_id = {str(person["id_osoby"]): person for person in identities}
     identity_options = list(identity_by_id)
-    preferred_identity = "demo-U-PRM" if "demo-U-PRM" in identity_by_id else identity_options[0]
+    preferred_identity = "demo-premier" if "demo-premier" in identity_by_id else identity_options[0]
     if "selected_demo_person_id" not in st.session_state:
         st.session_state["selected_demo_person_id"] = preferred_identity
     if st.session_state["selected_demo_person_id"] not in identity_by_id:
@@ -86,7 +90,8 @@ def main():
             options=identity_options,
             format_func=lambda person_id: (
                 f"{identity_by_id[person_id]['imie']} {identity_by_id[person_id]['nazwisko']} — "
-                f"{identity_by_id[person_id]['nazwa_jednostki']}"
+                f"{identity_by_id[person_id]['nazwa_jednostki']} · "
+                f"{identity_by_id[person_id]['klauzula_tajnosci']}"
             ),
             key="selected_demo_person_id",
         )
@@ -98,6 +103,7 @@ def main():
         plans = get_plans(selected_person_id)
         units = get_units(selected_person_id)
         tasks = get_tasks(selected_person_id)
+        collaboration_summary = get_collaboration_summary(selected_person_id)
     except httpx.HTTPStatusError as exc:
         status_code = exc.response.status_code if exc.response is not None else "?"
         st.error(f"Warstwa dostępowa odrzuciła żądanie lub zwróciła błąd (HTTP {status_code}).")
@@ -134,6 +140,16 @@ def main():
     c2.metric("Jednostki", len(units))
     c3.metric("Zadania", total_tasks)
     c4.metric("Śr. realizacja", f"{avg_completion * 100:.0f}%")
+
+    if collaboration_summary:
+        st.subheader("Bramka informacyjna — współpraca między jednostkami")
+        st.caption("Udostępnione są wyłącznie agregaty. Nazwy, identyfikatory i szczegóły zadań jednostki współpracującej pozostają ukryte.")
+        for summary in collaboration_summary:
+            st.markdown(f"**{summary['jednostka']}** · zakres: `aggregate_only`")
+            a, b, c = st.columns(3)
+            a.metric("Zadania zrealizowane", summary["liczba_zrealizowanych"])
+            b.metric("Zadań łącznie", summary["liczba_zadan"])
+            c.metric("Średni poziom realizacji", f"{summary['poziom_realizacji_proc']:.1f}%")
 
     tab_unit, tab_plans, tab_all, tab_map = st.tabs([
         "Widok jednostki", "Hierarchia planów", "Wszystkie zadania", "Mapa"

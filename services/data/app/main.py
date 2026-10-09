@@ -91,6 +91,7 @@ def init_db() -> None:
         CREATE TABLE IF NOT EXISTS unit_cooperation (
             unit_id TEXT NOT NULL REFERENCES units(id),
             partner_unit_id TEXT NOT NULL REFERENCES units(id),
+            sharing_level TEXT NOT NULL DEFAULT 'details',
             PRIMARY KEY (unit_id, partner_unit_id),
             CHECK(unit_id <> partner_unit_id)
         );
@@ -102,6 +103,7 @@ def init_db() -> None:
             ("plans", "klauzula_tajnosci", "TEXT NOT NULL DEFAULT 'scisle_tajne'"),
             ("units", "pracownicy_json", "TEXT NOT NULL DEFAULT '[]'"),
             ("tasks", "klauzula_tajnosci", "TEXT NOT NULL DEFAULT 'scisle_tajne'"),
+            ("unit_cooperation", "sharing_level", "TEXT NOT NULL DEFAULT 'details'"),
         ]:
             existing = {r[1] for r in conn.execute(f"PRAGMA table_info({table})").fetchall()}
             if column not in existing:
@@ -157,8 +159,8 @@ def init_db() -> None:
                     int(bool(person.get("aktywna", True)))
                 ))
             for relation in seed.get("wspolpraca", []):
-                conn.execute("INSERT OR IGNORE INTO unit_cooperation (unit_id,partner_unit_id) VALUES (?,?)",
-                             (str(relation["unit_id"]), str(relation["partner_unit_id"])))
+                conn.execute("INSERT OR IGNORE INTO unit_cooperation (unit_id,partner_unit_id,sharing_level) VALUES (?,?,?)",
+                             (str(relation["unit_id"]), str(relation["partner_unit_id"]), relation.get("sharing_level", "details")))
         # If an older persistent database already had plans, bootstrap demo identities once too.
         if conn.execute("SELECT COUNT(*) FROM people").fetchone()[0] == 0:
             unit_rows = conn.execute("SELECT id FROM units ORDER BY id").fetchall()
@@ -168,9 +170,64 @@ def init_db() -> None:
                              (f"demo-{uid}", "Użytkownik", "Demo", uid, "Konto demonstracyjne", "jawne"))
 
 
+def apply_demo_access_scenario() -> None:
+    """Apply an idempotent, synthetic access-control scenario for hackathon demos.
+
+    This intentionally uses fictional role accounts except for the explicitly named
+    Prime Minister demo perspective. It is not an authentication or classification
+    authority for real information.
+    """
+    police_plans = ("ORP", "ORPP", "ORPPP", "PP", "PPP", "PPPP")
+    fire_plans = ("ORS", "ORSS", "ORSSS", "PS", "PSS", "PSSS")
+    assignment_by_plan = {
+        "ORP": "U-KGP", "PP": "U-KGP",
+        "ORPP": "U-KWP-MZ", "PPP": "U-KWP-MZ",
+        "ORPPP": "U-KPP-RAD", "PPPP": "U-KPP-RAD",
+        "ORS": "U-KGPSP", "PS": "U-KGPSP",
+        "ORSS": "U-KWPSP-MZ", "PSS": "U-KWPSP-MZ",
+        "ORSSS": "U-KPPSP-RAD", "PSSS": "U-KPPSP-RAD",
+    }
+    with db() as conn:
+        # Keep the demo selector focused and avoid 19 indistinguishable "Użytkownik Demo" accounts.
+        conn.execute("UPDATE people SET aktywna=0 WHERE id_osoby LIKE 'demo-U-%'")
+        demo_people = [
+            ("demo-premier", "Donald", "Tusk", "U-PRM", "Premier RP — konto demonstracyjne, pełny wgląd PoC", "scisle_tajne"),
+            ("demo-kgp", "Jan", "Kowalski", "U-KGP", "Komendant Główny Policji — postać fikcyjna do demo", "tajne"),
+            ("demo-kgpsp", "Anna", "Nowak", "U-KGPSP", "Komendant Główny PSP — postać fikcyjna do demo", "zastrzezone"),
+        ]
+        for person_id, first, last, unit_id, role, clearance in demo_people:
+            conn.execute("""INSERT INTO people
+                (id_osoby,imie,nazwisko,id_jednostki,stanowisko,klauzula_tajnosci,aktywna)
+                VALUES (?,?,?,?,?,?,1)
+                ON CONFLICT(id_osoby) DO UPDATE SET
+                    imie=excluded.imie,nazwisko=excluded.nazwisko,
+                    id_jednostki=excluded.id_jednostki,stanowisko=excluded.stanowisko,
+                    klauzula_tajnosci=excluded.klauzula_tajnosci,aktywna=1""",
+                (person_id, first, last, unit_id, role, clearance))
+
+        for plan_id in police_plans:
+            conn.execute("UPDATE plans SET klauzula_tajnosci='tajne' WHERE id_planu=?", (plan_id,))
+        for plan_id in fire_plans:
+            conn.execute("UPDATE plans SET klauzula_tajnosci='zastrzezone' WHERE id_planu=?", (plan_id,))
+        for plan_id in police_plans:
+            conn.execute("UPDATE tasks SET klauzula_tajnosci='tajne' WHERE id_planu=?", (plan_id,))
+        for plan_id in fire_plans:
+            conn.execute("UPDATE tasks SET klauzula_tajnosci='zastrzezone' WHERE id_planu=?", (plan_id,))
+
+        # Give demo tasks explicit organizational ownership so API filtering and UI labels are meaningful.
+        for plan_id, unit_id in assignment_by_plan.items():
+            conn.execute("UPDATE tasks SET id_jednostek_json=? WHERE id_planu=? AND id_jednostek_json='[]'",
+                         (json.dumps([unit_id]), plan_id))
+
+        # Directional aggregate-only release: PSP shares counts with Police, not task details.
+        conn.execute("DELETE FROM unit_cooperation WHERE (unit_id='U-KGPSP' AND partner_unit_id='U-KGP') OR (unit_id='U-KGP' AND partner_unit_id='U-KGPSP')")
+        conn.execute("INSERT OR REPLACE INTO unit_cooperation (unit_id,partner_unit_id,sharing_level) VALUES ('U-KGPSP','U-KGP','aggregate')")
+
+
 @app.on_event("startup")
 def startup() -> None:
     init_db()
+    apply_demo_access_scenario()
 
 
 def plan_dict(row: sqlite3.Row) -> dict[str, Any]:
@@ -303,9 +360,9 @@ def get_person(person_id: str):
 def get_cooperation(unit_id: str | None = None):
     with db() as conn:
         if unit_id:
-            rows = conn.execute("SELECT unit_id,partner_unit_id FROM unit_cooperation WHERE unit_id=? OR partner_unit_id=?", (unit_id, unit_id)).fetchall()
+            rows = conn.execute("SELECT unit_id,partner_unit_id,sharing_level FROM unit_cooperation WHERE unit_id=? OR partner_unit_id=?", (unit_id, unit_id)).fetchall()
         else:
-            rows = conn.execute("SELECT unit_id,partner_unit_id FROM unit_cooperation").fetchall()
+            rows = conn.execute("SELECT unit_id,partner_unit_id,sharing_level FROM unit_cooperation").fetchall()
     return [dict(row) for row in rows]
 
 
