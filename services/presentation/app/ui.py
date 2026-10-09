@@ -17,7 +17,7 @@ from app.view_helpers import (
 PRESENTATION_API_URL = os.getenv("PRESENTATION_API_URL", "http://localhost:8000")
 RADOM_CENTER = [51.4027, 21.1471]
 NATIONAL_SCOPE = "__national__"
-ACTIVE_PLAN_STATUSES = {"approved", "in_review"}
+ACTIVE_PLAN_STATUSES = {"active"}
 RESOURCE_LABELS = {
     "personel": "Personel",
     "pojazdy": "Pojazdy",
@@ -39,6 +39,25 @@ def fetch_json(url: str, params: dict | None = None, person_id: str | None = Non
             response.raise_for_status()
             return response.json()
     return asyncio.run(_get())
+
+
+def mutate_json(method: str, url: str, person_id: str, payload: dict | None = None):
+    headers = {"X-Person-Id": person_id} if person_id else {}
+    async def _request():
+        async with httpx.AsyncClient(timeout=12) as client:
+            response = await client.request(method, url, headers=headers, json=payload or {})
+            response.raise_for_status()
+            return response.json()
+    return asyncio.run(_request())
+
+
+def activate_plan(person_id: str, plan_id: str):
+    return mutate_json("POST", f"{PRESENTATION_API_URL}/api/plans/{plan_id}/activate", person_id)
+
+
+def update_task_progress(person_id: str, plan_id: str, task_id: str, progress: float):
+    return mutate_json("PATCH", f"{PRESENTATION_API_URL}/api/tasks/{plan_id}/{task_id}/progress", person_id,
+                       {"poziom_realizacji": progress})
 
 
 def get_demo_identities():
@@ -75,6 +94,21 @@ def get_task_detail(person_id: str, plan_id: str, task_id: str):
 
 def pct(tasks):
     return completion_percent(tasks)
+
+
+def descendant_plan_ids(plan_id: str, plans: list[dict]) -> set[str]:
+    """Return the plan subtree for aggregate calculations; callers must still filter displayed detail."""
+    children = defaultdict(list)
+    for plan in plans:
+        children[str(plan.get("id_planu_nadrzednego") or "")].append(str(plan.get("id_planu")))
+    result, stack = set(), [str(plan_id)]
+    while stack:
+        current = stack.pop()
+        if current in result:
+            continue
+        result.add(current)
+        stack.extend(children.get(current, []))
+    return result
 
 
 fmt_money = format_money
@@ -258,10 +292,15 @@ def main():
 
     active_plans = [p for p in scoped_plans if p.get("status_planu") in ACTIVE_PLAN_STATUSES]
     active_plan_ids = {str(plan["id_planu"]) for plan in active_plans}
-    own_completion = pct(own_tasks)
-    # The plan KPI uses only tasks belonging to the selected reporting scope and
-    # only plans currently considered active. It never folds in descendant tasks.
-    active_plan_tasks = [task for task in plan_scope_tasks if str(task.get("id_planu", "")) in active_plan_ids]
+    own_real_tasks = [task for task in own_tasks if task.get("typ_zadania") == "REAL"]
+    own_completion = pct(own_real_tasks)
+    # Plan-level aggregate includes REAL work in the plan subtree. UI details remain
+    # limited to the selected unit and its direct reporting scope.
+    active_plan_tasks = [
+        task for task in tasks
+        if task.get("typ_zadania") == "REAL"
+        and str(task.get("id_planu", "")) in set().union(*(descendant_plan_ids(pid, plans) for pid in active_plan_ids))
+    ]
     plans_completion = pct(active_plan_tasks)
     estimated_consumed = sum(
         float(task.get("koszt", 0) or 0) * max(0.0, min(1.0, float(task.get("poziom_realizacji", 0) or 0)))
@@ -282,8 +321,8 @@ def main():
                     st.metric("Zadania łącznie", summary["liczba_zadan"])
                     st.caption(f"Średnia realizacja: {summary['poziom_realizacji_proc']:.1f}%")
 
-    tab_overview, tab_unit, tab_plans, tab_map = st.tabs([
-        "Przegląd", "Jednostka", "Hierarchia planów", "Mapa"
+    tab_overview, tab_unit, tab_prepared, tab_active, tab_plans, tab_map = st.tabs([
+        "Przegląd", "Jednostka", "Plany przygotowane", "Plany aktywne", "Hierarchia planów", "Mapa"
     ])
 
     with tab_overview:
@@ -358,9 +397,9 @@ def main():
                     with st.container(border=True):
                         left, right = st.columns([4, 1])
                         left.markdown(f"**{display_plan_name(plan)}**")
-                        left.caption(f"{'Aktywny' if plan.get('status_planu') in ACTIVE_PLAN_STATUSES else 'Nieaktywny'} · {plan.get('klauzula_tajnosci', '—')}")
+                        left.caption(f"{'Aktywny' if plan.get('status_operacyjny') == 'active' else 'Nieaktywny'} · {plan.get('klauzula_tajnosci', '—')}")
                         right.caption("Status")
-                        right.write("W realizacji" if plan.get("status_planu") in ACTIVE_PLAN_STATUSES else "Nieaktywny")
+                        right.write("W realizacji" if plan.get("status_operacyjny") == "active" else "Nieaktywny")
             else:
                 st.info("W dostępnych danych nie ma planów przypisanych bezpośrednio do tej jednostki.")
 
@@ -423,7 +462,22 @@ def main():
                         d2.write(f"**Klauzula:** {detail.get('klauzula_tajnosci', task.get('klauzula_tajnosci', '—'))}")
                         d3.write(f"**Koszt zadania:** {fmt_money(detail.get('koszt', task.get('koszt', 0)))}")
                         st.write(f"**Status:** {status}")
-                        st.progress(max(0.0, min(1.0, float(detail.get("poziom_realizacji", task.get("poziom_realizacji", 0)) or 0))))
+                        current_progress = max(0.0, min(1.0, float(detail.get("poziom_realizacji", task.get("poziom_realizacji", 0)) or 0)))
+                        st.progress(current_progress)
+                        task_type = detail.get("typ_zadania", task.get("typ_zadania", "REAL"))
+                        if task_type == "REAL" and plan.get("status_operacyjny") == "active":
+                            new_progress = st.slider("Aktualizacja realizacji zadania", 0, 100, int(round(current_progress * 100)), key=f"progress_{plan_id}_{task_id}")
+                            if st.button("Zapisz postęp", key=f"save_progress_{plan_id}_{task_id}"):
+                                try:
+                                    update_task_progress(selected_person_id, plan_id, task_id, new_progress / 100)
+                                    st.success("Zapisano postęp zadania.")
+                                    st.rerun()
+                                except httpx.HTTPStatusError as exc:
+                                    st.error(f"Nie udało się zapisać postępu: HTTP {exc.response.status_code} — {exc.response.text}")
+                        elif task_type == "REAL":
+                            st.caption("Zadanie REAL można aktualizować po aktywacji planu.")
+                        else:
+                            st.caption("Zadanie przygotowawcze PRZ — postęp przygotowania.")
                         st.caption(f"Ostatnia aktualizacja: {detail.get('data_aktualizacji', task.get('data_aktualizacji', '—'))}")
                         resources = detail.get("zasoby", task.get("zasoby", {}))
                         if resources:
@@ -434,6 +488,79 @@ def main():
                             st.write("**Wykonawcy:** " + ", ".join(u.get("nazwa", "Jednostka") for u in assigned_units))
             else:
                 st.info("Brak zadań dla tej jednostki w jej własnych planach albo żadne zadanie nie spełnia filtrów.")
+
+    with tab_prepared:
+        st.header("Plany przygotowane")
+        st.caption("Plany nieaktywne. Przygotowanie PRZ jest wskaźnikiem informacyjnym; aktywację można wykonać także w sytuacji krytycznej.")
+        prepared_plans = [p for p in scoped_plans if p.get("status_operacyjny", "prepared") != "active"]
+        if not prepared_plans:
+            st.info("Brak nieaktywnych planów w bieżącym zakresie.")
+        for plan in sorted(prepared_plans, key=lambda p: display_plan_name(p).casefold()):
+            pid = str(plan["id_planu"])
+            plan_tasks = [t for t in tasks_by_plan.get(pid, []) if t.get("typ_zadania") == "PRZ"]
+            real_tasks = [t for t in tasks_by_plan.get(pid, []) if t.get("typ_zadania") == "REAL"]
+            prep = pct(plan_tasks)
+            with st.container(border=True):
+                st.subheader(display_plan_name(plan))
+                st.caption(f"Status dokumentu: {plan.get('status_planu', '—')} · Status operacyjny: nieaktywny")
+                m1, m2, m3 = st.columns(3)
+                m1.metric("Przygotowanie PRZ", f"{prep:.0f}%" if prep is not None else "Brak zadań PRZ")
+                m2.metric("Zadania PRZ", len(plan_tasks))
+                m3.metric("Zaplanowane zadania REAL", len(real_tasks))
+                if plan_tasks:
+                    st.progress(max(0.0, min(1.0, (prep or 0) / 100)), text="Poziom przygotowania")
+                with st.expander("Zweryfikuj przygotowanie"):
+                    st.markdown("**Zadania przygotowawcze (PRZ)**")
+                    for task in plan_tasks:
+                        st.write(f"• {task.get('nazwa_zadania')} — {float(task.get('poziom_realizacji', 0))*100:.0f}%")
+                    st.markdown("**Zadania realizacyjne (REAL) — zaplanowane, przed aktywacją 0%**")
+                    for task in real_tasks:
+                        st.write(f"• {task.get('nazwa_zadania')} — {float(task.get('poziom_realizacji', 0))*100:.0f}%")
+                    allowed_child_owner_ids = direct_subordinate_unit_ids if is_national_scope else {
+                        str(u["id"]) for u in units
+                        if str(u.get("id_jednostki_nadrzednej") or "") == str(selected_scope)
+                    }
+                    child_ids = [str(p.get("id_planu")) for p in plans
+                                 if str(p.get("id_planu_nadrzednego") or "") == pid
+                                 and plan_owner_by_id.get(str(p.get("id_planu"))) in allowed_child_owner_ids]
+                    if child_ids:
+                        st.markdown("**Podplany jednostek bezpośrednio podległych**")
+                        for child_id in child_ids:
+                            child = plans_by_id.get(child_id)
+                            if child:
+                                st.write(f"• {display_plan_name(child)} — {'aktywny' if child.get('status_operacyjny') == 'active' else 'nieaktywny'}")
+                if st.button("Aktywuj plan i wszystkie podplany", key=f"activate_{pid}", type="primary"):
+                    try:
+                        result = activate_plan(selected_person_id, pid)
+                        st.success(f"Aktywowano {len(result.get('activated_plan_ids', []))} planów w poddrzewie.")
+                        st.rerun()
+                    except httpx.HTTPStatusError as exc:
+                        st.error(f"Nie udało się aktywować planu: HTTP {exc.response.status_code} — {exc.response.text}")
+                    except Exception as exc:
+                        st.error(f"Nie udało się aktywować planu: {exc}")
+
+    with tab_active:
+        st.header("Plany aktywne")
+        st.caption("Postęp planu obejmuje własne zadania REAL oraz agregat planów jednostek podległych. Szczegóły zadań podległych pozostają odseparowane.")
+        active_scope_plans = [p for p in scoped_plans if p.get("status_operacyjny") == "active"]
+        if not active_scope_plans:
+            st.info("Brak aktywnych planów w bieżącym zakresie.")
+        for plan in sorted(active_scope_plans, key=lambda p: display_plan_name(p).casefold()):
+            pid = str(plan["id_planu"])
+            own_real = [t for t in tasks_by_plan.get(pid, []) if t.get("typ_zadania") == "REAL"]
+            subtree_ids = descendant_plan_ids(pid, plans)
+            subtree_real = [t for t in tasks if t.get("typ_zadania") == "REAL" and str(t.get("id_planu")) in subtree_ids]
+            completion = pct(subtree_real)
+            with st.container(border=True):
+                st.subheader(display_plan_name(plan))
+                st.caption(f"Aktywowano: {plan.get('data_aktywacji') or 'data niedostępna'}")
+                a, b, c = st.columns(3)
+                a.metric("Realizacja planu i podplanów", f"{completion:.0f}%" if completion is not None else "—")
+                b.metric("Zadania REAL", len(own_real))
+                c.metric("Zakończone", sum(1 for t in own_real if float(t.get('poziom_realizacji', 0) or 0) >= 1))
+                for task in own_real:
+                    st.write(f"**{task.get('nazwa_zadania')}**")
+                    st.progress(max(0.0, min(1.0, float(task.get('poziom_realizacji', 0) or 0))), text=f"{float(task.get('poziom_realizacji', 0) or 0)*100:.0f}%")
 
     with tab_plans:
         st.markdown("<div class='pro-kicker'>Struktura dokumentów</div>", unsafe_allow_html=True)

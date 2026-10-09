@@ -1478,7 +1478,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-06",
       "status": false,
-      "poziom_realizacji": 0.93,
+      "poziom_realizacji": 0,
       "koszt": 2693703,
       "zasoby": {
         "personel": 43,
@@ -1496,7 +1496,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-07",
       "status": false,
-      "poziom_realizacji": 0.52,
+      "poziom_realizacji": 0,
       "koszt": 1448110,
       "zasoby": {
         "personel": 54,
@@ -1514,7 +1514,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-07",
       "status": false,
-      "poziom_realizacji": 0.23,
+      "poziom_realizacji": 0,
       "koszt": 2920877,
       "zasoby": {
         "personel": 98,
@@ -1532,7 +1532,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-01",
       "status": false,
-      "poziom_realizacji": 0.43,
+      "poziom_realizacji": 0,
       "koszt": 1354543,
       "zasoby": {
         "personel": 39,
@@ -1550,7 +1550,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-06",
       "status": false,
-      "poziom_realizacji": 0.78,
+      "poziom_realizacji": 0,
       "koszt": 2030301,
       "zasoby": {
         "personel": 59,
@@ -1566,7 +1566,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-03",
       "status": false,
-      "poziom_realizacji": 0.53,
+      "poziom_realizacji": 0,
       "koszt": 2843420,
       "zasoby": {
         "personel": 13,
@@ -1582,7 +1582,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-04",
       "status": false,
-      "poziom_realizacji": 0.14,
+      "poziom_realizacji": 0,
       "koszt": 2901909,
       "zasoby": {
         "personel": 42,
@@ -1598,7 +1598,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-01",
       "status": false,
-      "poziom_realizacji": 0.19,
+      "poziom_realizacji": 0,
       "koszt": 1106944,
       "zasoby": {
         "personel": 63,
@@ -1614,7 +1614,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-04",
       "status": false,
-      "poziom_realizacji": 0.47,
+      "poziom_realizacji": 0,
       "koszt": 3092961,
       "zasoby": {
         "personel": 92,
@@ -1630,7 +1630,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-03",
       "status": false,
-      "poziom_realizacji": 0.42,
+      "poziom_realizacji": 0,
       "koszt": 2831706,
       "zasoby": {
         "personel": 91,
@@ -1646,7 +1646,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-04",
       "status": false,
-      "poziom_realizacji": 0.77,
+      "poziom_realizacji": 0,
       "koszt": 817722,
       "zasoby": {
         "personel": 92,
@@ -1662,7 +1662,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-04",
       "status": false,
-      "poziom_realizacji": 0.1,
+      "poziom_realizacji": 0,
       "koszt": 589014,
       "zasoby": {
         "personel": 61,
@@ -1678,7 +1678,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-09",
       "status": false,
-      "poziom_realizacji": 0.67,
+      "poziom_realizacji": 0,
       "koszt": 2577508,
       "zasoby": {
         "personel": 43,
@@ -1694,7 +1694,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-09",
       "status": false,
-      "poziom_realizacji": 0.81,
+      "poziom_realizacji": 0,
       "koszt": 1869880,
       "zasoby": {
         "personel": 73,
@@ -1710,7 +1710,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-08",
       "status": false,
-      "poziom_realizacji": 0.74,
+      "poziom_realizacji": 0,
       "koszt": 1967729,
       "zasoby": {
         "personel": 36,
@@ -1728,7 +1728,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-09",
       "status": false,
-      "poziom_realizacji": 0.31,
+      "poziom_realizacji": 0,
       "koszt": 2112547,
       "zasoby": {
         "personel": 83,
@@ -1746,7 +1746,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-05",
       "status": false,
-      "poziom_realizacji": 0.46,
+      "poziom_realizacji": 0,
       "koszt": 1063537,
       "zasoby": {
         "personel": 37,
@@ -1762,7 +1762,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-02",
       "status": false,
-      "poziom_realizacji": 0.88,
+      "poziom_realizacji": 0,
       "koszt": 660382,
       "zasoby": {
         "personel": 22,
@@ -1778,7 +1778,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-04",
       "status": false,
-      "poziom_realizacji": 0.7,
+      "poziom_realizacji": 0,
       "koszt": 349395,
       "zasoby": {
         "personel": 56,
@@ -1796,7 +1796,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-07",
       "status": false,
-      "poziom_realizacji": 0.55,
+      "poziom_realizacji": 0,
       "koszt": 341161,
       "zasoby": {
         "personel": 29,
@@ -1814,7 +1814,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-01",
       "status": false,
-      "poziom_realizacji": 0.89,
+      "poziom_realizacji": 0,
       "koszt": 3291136,
       "zasoby": {
         "personel": 76,
@@ -1830,7 +1830,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-06",
       "status": false,
-      "poziom_realizacji": 0.06,
+      "poziom_realizacji": 0,
       "koszt": 1332472,
       "zasoby": {
         "personel": 99,
@@ -1846,7 +1846,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-09",
       "status": false,
-      "poziom_realizacji": 0.55,
+      "poziom_realizacji": 0,
       "koszt": 3434890,
       "zasoby": {
         "personel": 80,
@@ -1862,7 +1862,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-07",
       "status": false,
-      "poziom_realizacji": 0.25,
+      "poziom_realizacji": 0,
       "koszt": 2116930,
       "zasoby": {
         "personel": 6,
@@ -1878,7 +1878,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-07",
       "status": false,
-      "poziom_realizacji": 0.67,
+      "poziom_realizacji": 0,
       "koszt": 3117436,
       "zasoby": {
         "personel": 24,
@@ -1893,8 +1893,8 @@
       "nazwa_zadania": "Monitorowanie stanu kluczowych obiektów infrastruktury",
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-09",
-      "status": true,
-      "poziom_realizacji": 0.96,
+      "status": false,
+      "poziom_realizacji": 0,
       "koszt": 193105,
       "zasoby": {
         "personel": 53,
@@ -1910,7 +1910,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-02",
       "status": false,
-      "poziom_realizacji": 0.67,
+      "poziom_realizacji": 0,
       "koszt": 2775887,
       "zasoby": {
         "personel": 57,
@@ -1926,7 +1926,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-05",
       "status": false,
-      "poziom_realizacji": 0.22,
+      "poziom_realizacji": 0,
       "koszt": 1670076,
       "zasoby": {
         "personel": 44,
@@ -1942,7 +1942,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-07",
       "status": false,
-      "poziom_realizacji": 0.35,
+      "poziom_realizacji": 0,
       "koszt": 1247092,
       "zasoby": {
         "personel": 99,
@@ -1958,7 +1958,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-08",
       "status": false,
-      "poziom_realizacji": 0.83,
+      "poziom_realizacji": 0,
       "koszt": 161299,
       "zasoby": {
         "personel": 98,
@@ -1973,8 +1973,8 @@
       "nazwa_zadania": "Uruchomienie zaplanowanych środków finansowych",
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-06",
-      "status": true,
-      "poziom_realizacji": 0.98,
+      "status": false,
+      "poziom_realizacji": 0,
       "koszt": 1020455,
       "zasoby": {
         "personel": 86,
@@ -1992,7 +1992,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-01",
       "status": false,
-      "poziom_realizacji": 0.09,
+      "poziom_realizacji": 0,
       "koszt": 1117181,
       "zasoby": {
         "personel": 28,
@@ -2010,7 +2010,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-03",
       "status": false,
-      "poziom_realizacji": 0.19,
+      "poziom_realizacji": 0,
       "koszt": 2066259,
       "zasoby": {
         "personel": 88,
@@ -2028,7 +2028,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-08",
       "status": false,
-      "poziom_realizacji": 0.93,
+      "poziom_realizacji": 0,
       "koszt": 3013768,
       "zasoby": {
         "personel": 35,
@@ -2046,7 +2046,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-02",
       "status": false,
-      "poziom_realizacji": 0.61,
+      "poziom_realizacji": 0,
       "koszt": 3342295,
       "zasoby": {
         "personel": 23,
@@ -2064,7 +2064,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-05",
       "status": false,
-      "poziom_realizacji": 0.59,
+      "poziom_realizacji": 0,
       "koszt": 2495066,
       "zasoby": {
         "personel": 89,
@@ -2082,7 +2082,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-04",
       "status": false,
-      "poziom_realizacji": 0.93,
+      "poziom_realizacji": 0,
       "koszt": 398752,
       "zasoby": {
         "personel": 78,
@@ -2098,7 +2098,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-05",
       "status": false,
-      "poziom_realizacji": 0.14,
+      "poziom_realizacji": 0,
       "koszt": 2949990,
       "zasoby": {
         "personel": 79,
@@ -2114,7 +2114,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-06",
       "status": false,
-      "poziom_realizacji": 0.78,
+      "poziom_realizacji": 0,
       "koszt": 2314495,
       "zasoby": {
         "personel": 57,
@@ -2132,7 +2132,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-06",
       "status": false,
-      "poziom_realizacji": 0.52,
+      "poziom_realizacji": 0,
       "koszt": 133066,
       "zasoby": {
         "personel": 56,
@@ -2150,7 +2150,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-06",
       "status": false,
-      "poziom_realizacji": 0.45,
+      "poziom_realizacji": 0,
       "koszt": 2745837,
       "zasoby": {
         "personel": 61,
@@ -2168,7 +2168,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-09",
       "status": false,
-      "poziom_realizacji": 0.21,
+      "poziom_realizacji": 0,
       "koszt": 2808216,
       "zasoby": {
         "personel": 37,
@@ -2186,7 +2186,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-08",
       "status": false,
-      "poziom_realizacji": 0.77,
+      "poziom_realizacji": 0,
       "koszt": 1906931,
       "zasoby": {
         "personel": 96,
@@ -2204,7 +2204,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-04",
       "status": false,
-      "poziom_realizacji": 0.35,
+      "poziom_realizacji": 0,
       "koszt": 443490,
       "zasoby": {
         "personel": 38,
@@ -2222,7 +2222,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-07",
       "status": false,
-      "poziom_realizacji": 0.75,
+      "poziom_realizacji": 0,
       "koszt": 1490949,
       "zasoby": {
         "personel": 6,
@@ -2238,7 +2238,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-04",
       "status": false,
-      "poziom_realizacji": 0.22,
+      "poziom_realizacji": 0,
       "koszt": 1568243,
       "zasoby": {
         "personel": 36,
@@ -2254,7 +2254,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-05",
       "status": false,
-      "poziom_realizacji": 0.87,
+      "poziom_realizacji": 0,
       "koszt": 2411156,
       "zasoby": {
         "personel": 4,
@@ -2270,7 +2270,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-07",
       "status": false,
-      "poziom_realizacji": 0.13,
+      "poziom_realizacji": 0,
       "koszt": 2129244,
       "zasoby": {
         "personel": 74,
@@ -2286,7 +2286,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-08",
       "status": false,
-      "poziom_realizacji": 0.49,
+      "poziom_realizacji": 0,
       "koszt": 1959780,
       "zasoby": {
         "personel": 5,
@@ -2302,7 +2302,7 @@
       "data_utworzenia": "2026-09-20",
       "data_aktualizacji": "2026-10-04",
       "status": false,
-      "poziom_realizacji": 0.26,
+      "poziom_realizacji": 0,
       "koszt": 1364321,
       "zasoby": {
         "personel": 87,

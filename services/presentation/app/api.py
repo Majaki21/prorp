@@ -38,6 +38,23 @@ async def access_get(
         raise HTTPException(502, "Access service returned invalid JSON") from exc
 
 
+async def access_mutate(method: str, path: str, payload: dict, person_id: str | None = None):
+    headers = {"X-Person-Id": person_id} if person_id else {}
+    try:
+        async with httpx.AsyncClient(timeout=12) as client:
+            response = await client.request(method, f"{ACCESS_SERVICE_URL}{path}", json=payload, headers=headers)
+    except httpx.HTTPError as exc:
+        raise HTTPException(502, "Access service unavailable") from exc
+    if response.status_code in (400, 401, 403, 404, 409, 422):
+        raise HTTPException(response.status_code, response.text)
+    if response.status_code not in (200, 201):
+        raise HTTPException(502, "Access service returned an error")
+    try:
+        return response.json()
+    except ValueError as exc:
+        raise HTTPException(502, "Access service returned invalid JSON") from exc
+
+
 @app.get("/api/demo-identities")
 async def demo_identities():
     return await access_get("/demo-identities")
@@ -110,6 +127,24 @@ async def task_detail(
     x_person_id: str | None = Header(default=None, alias="X-Person-Id"),
 ):
     return await access_get(f"/tasks/{plan_id}/{task_id}", person_id=x_person_id)
+
+
+@app.post("/api/plans/{plan_id}/activate")
+async def activate_plan(
+    plan_id: str,
+    x_person_id: str | None = Header(default=None, alias="X-Person-Id"),
+):
+    return await access_mutate("POST", f"/plans/{plan_id}/activate", {}, person_id=x_person_id)
+
+
+@app.patch("/api/tasks/{plan_id}/{task_id}/progress")
+async def update_task_progress(
+    plan_id: str,
+    task_id: str,
+    payload: dict,
+    x_person_id: str | None = Header(default=None, alias="X-Person-Id"),
+):
+    return await access_mutate("PATCH", f"/tasks/{plan_id}/{task_id}/progress", payload, person_id=x_person_id)
 
 
 @app.post("/api/simulations")

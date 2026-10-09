@@ -5,11 +5,20 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from pydantic import BaseModel, Field
 
 from fastapi import FastAPI, HTTPException, Query
 from pro_rp_shared.models import (
     Infrastructure, OperationalState, Plan, Resource, Task, Osoba,
 )
+
+class TaskProgressUpdate(BaseModel):
+    poziom_realizacji: float = Field(ge=0.0, le=1.0)
+
+
+class PlanActivation(BaseModel):
+    activated_by: str = Field(min_length=1, max_length=128)
+
 
 app = FastAPI(title="PRO RP Data Service", version="2.0.0")
 DB_PATH = Path(os.getenv("PRO_RP_DB_PATH", "/data/pro_rp.sqlite3"))
@@ -52,7 +61,10 @@ def init_db() -> None:
             data_utworzenia TEXT NOT NULL,
             data_zatwierdzeina TEXT,
             status_planu TEXT NOT NULL DEFAULT 'draft',
-            klauzula_tajnosci TEXT NOT NULL DEFAULT 'scisle_tajne'
+            klauzula_tajnosci TEXT NOT NULL DEFAULT 'scisle_tajne',
+            status_operacyjny TEXT NOT NULL DEFAULT 'prepared',
+            data_aktywacji TEXT,
+            aktywowany_przez TEXT
         );
         CREATE TABLE IF NOT EXISTS units (
             id TEXT PRIMARY KEY,
@@ -77,6 +89,7 @@ def init_db() -> None:
             koszt REAL NOT NULL DEFAULT 0,
             zasoby_json TEXT NOT NULL DEFAULT '{}',
             klauzula_tajnosci TEXT NOT NULL DEFAULT 'scisle_tajne',
+            typ_zadania TEXT NOT NULL DEFAULT 'REAL',
             PRIMARY KEY (id_planu, id_zadania)
         );
         CREATE TABLE IF NOT EXISTS people (
@@ -101,8 +114,12 @@ def init_db() -> None:
         # Lightweight migrations for databases created by earlier PoC versions.
         for table, column, definition in [
             ("plans", "klauzula_tajnosci", "TEXT NOT NULL DEFAULT 'scisle_tajne'"),
+            ("plans", "status_operacyjny", "TEXT NOT NULL DEFAULT 'prepared'"),
+            ("plans", "data_aktywacji", "TEXT"),
+            ("plans", "aktywowany_przez", "TEXT"),
             ("units", "pracownicy_json", "TEXT NOT NULL DEFAULT '[]'"),
             ("tasks", "klauzula_tajnosci", "TEXT NOT NULL DEFAULT 'scisle_tajne'"),
+            ("tasks", "typ_zadania", "TEXT NOT NULL DEFAULT 'REAL'"),
             ("unit_cooperation", "sharing_level", "TEXT NOT NULL DEFAULT 'details'"),
         ]:
             existing = {r[1] for r in conn.execute(f"PRAGMA table_info({table})").fetchall()}
@@ -161,6 +178,18 @@ def init_db() -> None:
             for relation in seed.get("wspolpraca", []):
                 conn.execute("INSERT OR IGNORE INTO unit_cooperation (unit_id,partner_unit_id,sharing_level) VALUES (?,?,?)",
                              (str(relation["unit_id"]), str(relation["partner_unit_id"]), relation.get("sharing_level", "details")))
+        # Classify tasks explicitly. Legacy IDs are used only for the one-time PoC migration;
+        # all API consumers use the persisted typ_zadania field afterwards.
+        conn.execute("UPDATE tasks SET typ_zadania = CASE WHEN upper(id_zadania) LIKE 'PRZ-%' THEN 'PRZ' ELSE 'REAL' END")
+        # Before activation, REAL tasks are planned actions and must remain at zero progress.
+        conn.execute("UPDATE tasks SET poziom_realizacji=0, status=0 WHERE typ_zadania='REAL' AND id_planu IN (SELECT id_planu FROM plans WHERE status_operacyjny='prepared')")
+        conn.execute("""CREATE TABLE IF NOT EXISTS plan_activation_audit (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            root_plan_id TEXT NOT NULL,
+            affected_plan_ids_json TEXT NOT NULL,
+            activated_by TEXT NOT NULL,
+            activated_at TEXT NOT NULL
+        )""")
         # If an older persistent database already had plans, bootstrap demo identities once too.
         if conn.execute("SELECT COUNT(*) FROM people").fetchone()[0] == 0:
             unit_rows = conn.execute("SELECT id FROM units ORDER BY id").fetchall()
@@ -320,6 +349,51 @@ def get_tasks(plan_id: str | None = None, unit_id: str | None = None,
     if region_id:
         tasks = [t for t in tasks if any(units.get(uid, {}).get("id_regionu") == region_id for uid in t["id_jednostek"])]
     return tasks
+
+
+@app.post("/plans/{plan_id}/activate")
+def activate_plan(plan_id: str, request: PlanActivation):
+    """Activate a plan and every descendant atomically; readiness is deliberately not a gate."""
+    activated_at = datetime.now(timezone.utc).isoformat()
+    with db() as conn:
+        root = conn.execute("SELECT id_planu FROM plans WHERE id_planu=?", (plan_id,)).fetchone()
+        if root is None:
+            raise HTTPException(404, "Plan not found")
+        rows = conn.execute("SELECT id_planu,id_planu_nadrzednego FROM plans").fetchall()
+        children: dict[str, list[str]] = {}
+        for row in rows:
+            children.setdefault(str(row["id_planu_nadrzednego"] or ""), []).append(str(row["id_planu"]))
+        affected: list[str] = []
+        stack = [plan_id]
+        seen: set[str] = set()
+        while stack:
+            current = stack.pop()
+            if current in seen:
+                continue
+            seen.add(current)
+            affected.append(current)
+            stack.extend(children.get(current, []))
+        placeholders = ",".join("?" for _ in affected)
+        conn.execute(
+            f"UPDATE plans SET status_operacyjny='active', data_aktywacji=COALESCE(data_aktywacji, ?), aktywowany_przez=COALESCE(aktywowany_przez, ?) WHERE id_planu IN ({placeholders})",
+            [activated_at, request.activated_by, *affected],
+        )
+        conn.execute("INSERT INTO plan_activation_audit(root_plan_id,affected_plan_ids_json,activated_by,activated_at) VALUES (?,?,?,?)",
+                     (plan_id, json.dumps(affected), request.activated_by, activated_at))
+    return {"root_plan_id": plan_id, "activated_plan_ids": affected, "activated_at": activated_at, "activated_by": request.activated_by}
+
+
+@app.patch("/tasks/{plan_id}/{task_id}/progress")
+def update_task_progress(plan_id: str, task_id: str, request: TaskProgressUpdate):
+    """Persist progress after Access has checked ownership and plan activation."""
+    with db() as conn:
+        task = conn.execute("SELECT typ_zadania FROM tasks WHERE id_planu=? AND id_zadania=?", (plan_id, task_id)).fetchone()
+        if task is None:
+            raise HTTPException(404, "Task not found")
+        conn.execute("UPDATE tasks SET poziom_realizacji=?, status=?, data_aktualizacji=? WHERE id_planu=? AND id_zadania=?",
+                     (request.poziom_realizacji, int(request.poziom_realizacji >= 1.0), datetime.now(timezone.utc).date().isoformat(), plan_id, task_id))
+        row = conn.execute("SELECT * FROM tasks WHERE id_planu=? AND id_zadania=?", (plan_id, task_id)).fetchone()
+    return task_dict(row)
 
 
 @app.get("/people")

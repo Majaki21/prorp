@@ -160,3 +160,12 @@ Plany i zadania Policji (ORP/ORPP/ORPPP oraz PP/PPP/PPPP) są w tym scenariuszu 
 Relacja współpracy jest kierunkowa: `U-KGPSP` udostępnia `U-KGP` wyłącznie agregat postępu. Endpoint `GET /collaboration-summary` zwraca nazwę jednostki współpracującej i liczby agregatowe, bez identyfikatorów, nazw ani szczegółów poszczególnych zadań. Nie rozszerza ona zakresu dostępu do `/tasks`, `/plans` ani `/units`. W ten sposób KGP może zobaczyć np. liczbę zrealizowanych zadań PSP, a konto PSP nie otrzymuje analogicznego dostępu do danych Policji.
 
 Konta i klauzule są syntetycznym scenariuszem hackathonowym, a nie rzeczywistą klasyfikacją informacji ani produkcyjnym systemem uwierzytelniania.
+
+## Cykl życia planów (aktualizacja PoC)
+
+- `status_operacyjny` rozdziela stan operacyjny (`prepared` / `active`) od formalnego `status_planu`.
+- Zadania mają `typ_zadania` (`PRZ` / `REAL`). W nieaktywnych planach REAL są zaplanowane i mają 0%; PRZ zachowują postęp przygotowania.
+- `POST /api/plans/{plan_id}/activate` aktywuje wskazany plan i całe poddrzewo. Nie wymaga 100% przygotowania; warstwa Access sprawdza uprawnienie jednostki właścicielskiej lub bezpośrednio nadrzędnej.
+- `PATCH /api/tasks/{plan_id}/{task_id}/progress` umożliwia aktualizację REAL dopiero po aktywacji i tylko jednostce, do której zadanie jest przypisane.
+- Interfejs zawiera osobne widoki „Plany przygotowane” i „Plany aktywne”. Procent przygotowania opiera się na PRZ, a operacyjna realizacja na REAL.
+- Aktywacje są rejestrowane w tabeli `plan_activation_audit`.

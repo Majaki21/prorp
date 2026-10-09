@@ -40,6 +40,24 @@ async def data_get(path: str, params: dict[str, Any] | None = None) -> Any:
         raise HTTPException(502, "Data service returned invalid JSON") from exc
 
 
+async def data_mutate(method: str, path: str, payload: dict[str, Any]) -> Any:
+    try:
+        async with httpx.AsyncClient(timeout=12) as client:
+            response = await client.request(method, f"{DATA_SERVICE_URL}{path}", json=payload)
+    except httpx.HTTPError as exc:
+        raise HTTPException(502, "Data service unavailable") from exc
+    if response.status_code == 404:
+        raise HTTPException(404, "Record not found")
+    if response.status_code == 422:
+        raise HTTPException(422, response.text)
+    if response.status_code not in (200, 201):
+        raise HTTPException(502, "Data service returned an error")
+    try:
+        return response.json()
+    except ValueError as exc:
+        raise HTTPException(502, "Data service returned invalid JSON") from exc
+
+
 def clearance_allows(person_level: str, object_level: str) -> bool:
     """Unknown or malformed classifications always deny access."""
     return (
@@ -476,3 +494,63 @@ async def get_state(x_person_id: str | None = Header(default=None, alias="X-Pers
         version=datetime.now(timezone.utc).isoformat(),
         tasks=tasks, resources=resources, infrastructure=[],
     )
+
+
+@app.post("/plans/{plan_id}/activate")
+async def activate_visible_plan(
+    plan_id: str,
+    x_person_id: str | None = Header(default=None, alias="X-Person-Id"),
+):
+    """Only the plan's owning unit or its direct organizational superior may activate it."""
+    person = await resolve_person(x_person_id)
+    visible_units, visible_plan_ids, units, plans = await access_context(person)
+    plan = next((p for p in plans if str(p["id_planu"]) == plan_id), None)
+    if plan is None or plan_id not in visible_plan_ids or not plan_is_readable(person, plan):
+        raise not_found()
+    own_unit_id = str(person["id_jednostki"])
+    unit_by_id = {str(u["id"]): u for u in units}
+    owners = {str(pid): str(unit["id"]) for unit in units for pid in unit.get("id_planow", [])}
+    owner_id = owners.get(plan_id)
+    # The user may activate plans assigned to their own unit or to one of their direct reports.
+    direct_report_ids = {str(u["id"]) for u in units if str(u.get("id_jednostki_nadrzednej") or "") == own_unit_id}
+    if not owner_id or (owner_id != own_unit_id and owner_id not in direct_report_ids):
+        raise HTTPException(403, "Only the plan owner or the directly superior unit may activate this plan")
+    if owner_id not in visible_units or owner_id not in unit_by_id:
+        raise not_found()
+    return await data_mutate("POST", f"/plans/{plan_id}/activate", {"activated_by": str(person["id_osoby"])})
+
+
+@app.patch("/tasks/{plan_id}/{task_id}/progress")
+async def update_owned_task_progress(
+    plan_id: str,
+    task_id: str,
+    payload: dict[str, Any],
+    x_person_id: str | None = Header(default=None, alias="X-Person-Id"),
+):
+    person = await resolve_person(x_person_id)
+    visible_units, visible_plan_ids, units, plans = await access_context(person)
+    if plan_id not in visible_plan_ids:
+        raise not_found()
+    plan_by_id = {str(p["id_planu"]): p for p in plans}
+    tasks = await data_get("/tasks", {"plan_id": plan_id, "limit": 5000})
+    task = next((t for t in tasks if str(t.get("id_zadania")) == task_id), None)
+    if task is None or not task_is_readable(person, task, plan_by_id, visible_units, visible_plan_ids):
+        raise not_found()
+    assigned = {str(uid) for uid in task.get("id_jednostek", [])}
+    if not assigned:
+        owner_id = next((str(u["id"]) for u in units if plan_id in {str(x) for x in u.get("id_planow", [])}), "")
+        assigned = {owner_id} if owner_id else set()
+    own_unit_id = str(person["id_jednostki"])
+    if assigned != {own_unit_id}:
+        raise HTTPException(403, "A unit may update only tasks assigned exclusively to that unit")
+    if task.get("typ_zadania") != "REAL":
+        raise HTTPException(409, "Only REAL tasks are updated through operational progress")
+    if plan_by_id.get(plan_id, {}).get("status_operacyjny", "prepared") != "active":
+        raise HTTPException(409, "The plan must be active before REAL tasks can be updated")
+    try:
+        progress = float(payload.get("poziom_realizacji"))
+    except (TypeError, ValueError):
+        raise HTTPException(422, "poziom_realizacji must be a number between 0 and 1")
+    if not 0 <= progress <= 1:
+        raise HTTPException(422, "poziom_realizacji must be between 0 and 1")
+    return await data_mutate("PATCH", f"/tasks/{plan_id}/{task_id}/progress", {"poziom_realizacji": progress})
