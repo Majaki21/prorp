@@ -77,3 +77,8 @@ Wybór konta w pasku bocznym jest mechanizmem demonstracyjnym, nie uwierzytelnia
 - „Zadania tej jednostki” obejmuje tylko zadania z jej własnych planów. Zadania jawnie przypisane do jednostek podrzędnych nie są wliczane do szczegółowego widoku jednostki nadrzędnej.
 - Każde zadanie jest prezentowane jako pojedynczy rozwijany element, który pobiera szczegóły z endpointu API. Usunięto osobny, powtarzający listę zadań widok „Wszystkie zadania”.
 - „Hierarchia i wykonawcy” pozostaje widokiem nawigacyjnym planów; pokazuje strukturę, status, klauzulę i wykonawców bez ponownego renderowania list zadań. Plan O jest wyróżniony jako plan krajowy.
+
+
+## Moduł Analizy
+
+Zakładka „Analizy” zawiera trzy perspektywy: (1) plany nadrzędne z możliwością przejścia do jednostek realizujących plan, (2) jednostki z możliwością rozwinięcia listy ich zadań, (3) pozostałe analizy — kadry, przeciążenie, efektywność, ryzyko budżetowe, stagnacja i lejek realizacji. W tej samej zakładce pozostawiono istniejącą analitykę historyczną i scenariusze postępu. Dane operacyjne są udostępniane przez ścieżkę Presentation API → Access → Analytics History; endpoint jest ograniczony do perspektywy krajowej, ponieważ demonstracyjny pakiet analityczny agreguje dane globalne. Wyniki zawierają dane syntetyczne i powinny być traktowane jako demonstracja, nie jako pomiar rzeczywisty.

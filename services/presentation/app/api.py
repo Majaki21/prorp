@@ -55,6 +55,11 @@ async def access_mutate(method: str, path: str, payload: dict, person_id: str | 
         raise HTTPException(502, "Access service returned invalid JSON") from exc
 
 
+@app.get("/api/analytics/operational")
+async def analytics_operational(x_person_id: str | None = Header(default=None, alias="X-Person-Id")):
+    return await access_get("/analytics/operational", person_id=x_person_id)
+
+
 @app.get("/api/analytics/history/snapshots")
 async def analytics_snapshots(x_person_id: str | None = Header(default=None, alias="X-Person-Id")):
     return await access_get("/analytics/history/snapshots", person_id=x_person_id)

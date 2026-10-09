@@ -234,6 +234,12 @@ async def require_national_analytics(x_person_id: str | None) -> dict[str, Any]:
     return person
 
 
+@app.get("/analytics/operational")
+async def analytics_operational(x_person_id: str | None = Header(default=None, alias="X-Person-Id")):
+    await require_national_analytics(x_person_id)
+    return await analytics_request("GET", "/analysis/operational")
+
+
 @app.get("/analytics/history/snapshots")
 async def analytics_snapshots(x_person_id: str | None = Header(default=None, alias="X-Person-Id")):
     await require_national_analytics(x_person_id)

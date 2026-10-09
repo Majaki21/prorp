@@ -1,0 +1,2371 @@
+{
+  "metadata": {
+    "title": "PRO RP — seed danych demonstracyjnych (struktura instytucji PoC)",
+    "warning": "Nazwy instytucji są rzeczywiste, ale węzeł Prezesa RM/Rady Ministrów oraz wybrane relacje nadrzędności są uproszczeniem koordynacyjnym PoC, a nie formalną mapą podległości prawnej. Plany mają własną hierarchię uruchamiania, która nie musi być identyczna z hierarchią administracyjną. Statusy, budżety, zasoby, terminy i przypisania zadań są syntetyczne.",
+    "generated_on": "2026-10-09",
+    "counts": {
+      "plans": 25,
+      "units": 19,
+      "tasks": 100
+    }
+  },
+  "plans": [
+    {
+      "id_planu": "O",
+      "id_planu_nadrzednego": null,
+      "nazwa_dokumentu": "Plan O — koordynacja krajowa",
+      "sporzadzil": "Kancelaria Prezesa Rady Ministrów",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Kancelaria Prezesa Rady Ministrów",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "OR",
+      "id_planu_nadrzednego": "O",
+      "nazwa_dokumentu": "Plan OR — działania MSWiA",
+      "sporzadzil": "Ministerstwo Spraw Wewnętrznych i Administracji",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Ministerstwo Spraw Wewnętrznych i Administracji",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "OK",
+      "id_planu_nadrzednego": "O",
+      "nazwa_dokumentu": "Plan OK — działania administracji wojewódzkiej",
+      "sporzadzil": "Mazowiecki Urząd Wojewódzki",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Mazowiecki Urząd Wojewódzki",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "OW",
+      "id_planu_nadrzednego": "O",
+      "nazwa_dokumentu": "Plan OW — koordynacja RCB",
+      "sporzadzil": "Rządowe Centrum Bezpieczeństwa",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Rządowe Centrum Bezpieczeństwa",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "ORP",
+      "id_planu_nadrzednego": "OR",
+      "nazwa_dokumentu": "Plan ORP — działania Policji",
+      "sporzadzil": "Komenda Główna Policji",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Komenda Główna Policji",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "ORS",
+      "id_planu_nadrzednego": "OR",
+      "nazwa_dokumentu": "Plan ORS — działania Państwowej Straży Pożarnej",
+      "sporzadzil": "Komenda Główna Państwowej Straży Pożarnej",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Komenda Główna Państwowej Straży Pożarnej",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "ORPP",
+      "id_planu_nadrzednego": "ORP",
+      "nazwa_dokumentu": "Plan ORPP — działania Policji na obszarze stołecznym",
+      "sporzadzil": "Komenda Stołeczna Policji",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Komenda Stołeczna Policji",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "ORSS",
+      "id_planu_nadrzednego": "ORS",
+      "nazwa_dokumentu": "Plan ORSS — działania PSP w woj. mazowieckim",
+      "sporzadzil": "Komenda Wojewódzka PSP w Warszawie",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Komenda Wojewódzka PSP w Warszawie",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "ORPPP",
+      "id_planu_nadrzednego": "ORPP",
+      "nazwa_dokumentu": "Plan ORPPP — działania Policji w Radomiu",
+      "sporzadzil": "Komenda Miejska Policji w Radomiu",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Komenda Miejska Policji w Radomiu",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "ORSSS",
+      "id_planu_nadrzednego": "ORSS",
+      "nazwa_dokumentu": "Plan ORSSS — działania PSP w Radomiu",
+      "sporzadzil": "Komenda Miejska PSP w Radomiu",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Komenda Miejska PSP w Radomiu",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "P",
+      "id_planu_nadrzednego": null,
+      "nazwa_dokumentu": "Plan P — bezpieczeństwo i porządek publiczny",
+      "sporzadzil": "Ministerstwo Spraw Wewnętrznych i Administracji",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Ministerstwo Spraw Wewnętrznych i Administracji",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "PP",
+      "id_planu_nadrzednego": "P",
+      "nazwa_dokumentu": "Plan PP — działania Policji",
+      "sporzadzil": "Komenda Główna Policji",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Komenda Główna Policji",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "PS",
+      "id_planu_nadrzednego": "P",
+      "nazwa_dokumentu": "Plan PS — działania PSP",
+      "sporzadzil": "Komenda Główna Państwowej Straży Pożarnej",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Komenda Główna Państwowej Straży Pożarnej",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "PPP",
+      "id_planu_nadrzednego": "PP",
+      "nazwa_dokumentu": "Plan PPP — działania Policji na obszarze stołecznym",
+      "sporzadzil": "Komenda Stołeczna Policji",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Komenda Stołeczna Policji",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "PSS",
+      "id_planu_nadrzednego": "PS",
+      "nazwa_dokumentu": "Plan PSS — działania PSP w woj. mazowieckim",
+      "sporzadzil": "Komenda Wojewódzka PSP w Warszawie",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Komenda Wojewódzka PSP w Warszawie",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "PPPP",
+      "id_planu_nadrzednego": "PPP",
+      "nazwa_dokumentu": "Plan PPPP — działania Policji w Radomiu",
+      "sporzadzil": "Komenda Miejska Policji w Radomiu",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Komenda Miejska Policji w Radomiu",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "PSSS",
+      "id_planu_nadrzednego": "PSS",
+      "nazwa_dokumentu": "Plan PSSS — działania PSP w Radomiu",
+      "sporzadzil": "Komenda Miejska PSP w Radomiu",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Komenda Miejska PSP w Radomiu",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "R",
+      "id_planu_nadrzednego": null,
+      "nazwa_dokumentu": "Plan R — zabezpieczenie medyczne",
+      "sporzadzil": "Ministerstwo Zdrowia",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Ministerstwo Zdrowia",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "RN",
+      "id_planu_nadrzednego": "R",
+      "nazwa_dokumentu": "Plan RN — gotowość systemu finansowania świadczeń",
+      "sporzadzil": "Narodowy Fundusz Zdrowia",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Narodowy Fundusz Zdrowia",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "RL",
+      "id_planu_nadrzednego": "R",
+      "nazwa_dokumentu": "Plan RL — ratownictwo lotnicze",
+      "sporzadzil": "Lotnicze Pogotowie Ratunkowe",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Lotnicze Pogotowie Ratunkowe",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "S",
+      "id_planu_nadrzednego": null,
+      "nazwa_dokumentu": "Plan S — ciągłość infrastruktury transportowej",
+      "sporzadzil": "Ministerstwo Infrastruktury",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Ministerstwo Infrastruktury",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SD",
+      "id_planu_nadrzednego": "S",
+      "nazwa_dokumentu": "Plan SD — drogi krajowe",
+      "sporzadzil": "Generalna Dyrekcja Dróg Krajowych i Autostrad",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Generalna Dyrekcja Dróg Krajowych i Autostrad",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SK",
+      "id_planu_nadrzednego": "S",
+      "nazwa_dokumentu": "Plan SK — infrastruktura kolejowa",
+      "sporzadzil": "PKP Polskie Linie Kolejowe S.A.",
+      "uzgadnial": [],
+      "zatwierdzajacy": "PKP Polskie Linie Kolejowe S.A.",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "T",
+      "id_planu_nadrzednego": null,
+      "nazwa_dokumentu": "Plan T — infrastruktura samorządowa",
+      "sporzadzil": "Urząd Marszałkowski Województwa Mazowieckiego",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Urząd Marszałkowski Województwa Mazowieckiego",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "TD",
+      "id_planu_nadrzednego": "T",
+      "nazwa_dokumentu": "Plan TD — drogi wojewódzkie",
+      "sporzadzil": "Mazowiecki Zarząd Dróg Wojewódzkich",
+      "uzgadnial": [],
+      "zatwierdzajacy": "Mazowiecki Zarząd Dróg Wojewódzkich",
+      "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
+      "data_utworzenia": "2026-09-01",
+      "data_zatwierdzeina": "2026-09-10",
+      "status_planu": "approved",
+      "klauzula_tajnosci": "jawne"
+    }
+  ],
+  "units": [
+    {
+      "id": "U-PRM",
+      "nazwa": "Prezes Rady Ministrów / Rada Ministrów — węzeł koordynacyjny PoC",
+      "id_jednostki_nadrzednej": null,
+      "id_planow": [],
+      "budzet": 0,
+      "zasoby": {},
+      "id_regionu": null,
+      "typ": "wezel_koordynacyjny_poc"
+    },
+    {
+      "id": "U-KPRM",
+      "nazwa": "Kancelaria Prezesa Rady Ministrów",
+      "id_jednostki_nadrzednej": "U-PRM",
+      "id_planow": [
+        "O"
+      ],
+      "budzet": 12000000,
+      "zasoby": {
+        "personel": 120,
+        "pojazdy": 8
+      },
+      "id_regionu": null,
+      "typ": "administracja centralna"
+    },
+    {
+      "id": "U-MSWIA",
+      "nazwa": "Ministerstwo Spraw Wewnętrznych i Administracji",
+      "id_jednostki_nadrzednej": "U-PRM",
+      "id_planow": [
+        "OR",
+        "P"
+      ],
+      "budzet": 8000000,
+      "zasoby": {
+        "personel": 90,
+        "pojazdy": 12
+      },
+      "id_regionu": null,
+      "typ": "ministerstwo"
+    },
+    {
+      "id": "U-RCB",
+      "nazwa": "Rządowe Centrum Bezpieczeństwa",
+      "id_jednostki_nadrzednej": "U-PRM",
+      "id_planow": [
+        "OW"
+      ],
+      "budzet": 18000000,
+      "zasoby": {
+        "personel": 180,
+        "stanowiska_dyzurne": 3
+      },
+      "id_regionu": null,
+      "typ": "centrum rządowe"
+    },
+    {
+      "id": "U-MUW-MZ",
+      "nazwa": "Mazowiecki Urząd Wojewódzki",
+      "id_jednostki_nadrzednej": "U-PRM",
+      "id_planow": [
+        "OK"
+      ],
+      "budzet": 2500000,
+      "zasoby": {
+        "personel": 240,
+        "pojazdy": 18
+      },
+      "id_regionu": "PL-MZ",
+      "typ": "administracja rządowa terenowa"
+    },
+    {
+      "id": "U-KGP",
+      "nazwa": "Komenda Główna Policji",
+      "id_jednostki_nadrzednej": "U-MSWIA",
+      "id_planow": [
+        "ORP",
+        "PP"
+      ],
+      "budzet": 25000000,
+      "zasoby": {
+        "personel": 800,
+        "pojazdy": 100
+      },
+      "id_regionu": null,
+      "typ": "sluzby mundurowe"
+    },
+    {
+      "id": "U-KGPSP",
+      "nazwa": "Komenda Główna Państwowej Straży Pożarnej",
+      "id_jednostki_nadrzednej": "U-MSWIA",
+      "id_planow": [
+        "ORS",
+        "PS"
+      ],
+      "budzet": 22000000,
+      "zasoby": {
+        "personel": 500,
+        "pojazdy": 80
+      },
+      "id_regionu": null,
+      "typ": "sluzby mundurowe"
+    },
+    {
+      "id": "U-KWP-MZ",
+      "nazwa": "Komenda Stołeczna Policji",
+      "id_jednostki_nadrzednej": "U-KGP",
+      "id_planow": [
+        "ORPP",
+        "PPP"
+      ],
+      "budzet": 9000000,
+      "zasoby": {
+        "personel": 6500,
+        "pojazdy": 500
+      },
+      "id_regionu": "PL-MZ",
+      "typ": "policja"
+    },
+    {
+      "id": "U-KWPSP-MZ",
+      "nazwa": "Komenda Wojewódzka Państwowej Straży Pożarnej w Warszawie",
+      "id_jednostki_nadrzednej": "U-KGPSP",
+      "id_planow": [
+        "ORSS",
+        "PSS"
+      ],
+      "budzet": 6000000,
+      "zasoby": {
+        "personel": 1200,
+        "pojazdy": 160
+      },
+      "id_regionu": "PL-MZ",
+      "typ": "psp"
+    },
+    {
+      "id": "U-KPP-RAD",
+      "nazwa": "Komenda Miejska Policji w Radomiu",
+      "id_jednostki_nadrzednej": "U-KWP-MZ",
+      "id_planow": [
+        "ORPPP",
+        "PPPP"
+      ],
+      "budzet": 1800000,
+      "zasoby": {
+        "personel": 600,
+        "pojazdy": 80
+      },
+      "id_regionu": "PL-MZ",
+      "typ": "policja"
+    },
+    {
+      "id": "U-KPPSP-RAD",
+      "nazwa": "Komenda Miejska Państwowej Straży Pożarnej w Radomiu",
+      "id_jednostki_nadrzednej": "U-KWPSP-MZ",
+      "id_planow": [
+        "ORSSS",
+        "PSSS"
+      ],
+      "budzet": 1400000,
+      "zasoby": {
+        "personel": 250,
+        "pojazdy": 35
+      },
+      "id_regionu": "PL-MZ",
+      "typ": "psp"
+    },
+    {
+      "id": "U-MZ",
+      "nazwa": "Ministerstwo Zdrowia",
+      "id_jednostki_nadrzednej": "U-PRM",
+      "id_planow": [
+        "R"
+      ],
+      "budzet": 9000000,
+      "zasoby": {
+        "personel": 100,
+        "pojazdy": 10
+      },
+      "id_regionu": null,
+      "typ": "ministerstwo"
+    },
+    {
+      "id": "U-NFZ",
+      "nazwa": "Narodowy Fundusz Zdrowia",
+      "id_jednostki_nadrzednej": "U-MZ",
+      "id_planow": [
+        "RN"
+      ],
+      "budzet": 5000000,
+      "zasoby": {
+        "personel": 200,
+        "placowki": 16
+      },
+      "id_regionu": null,
+      "typ": "instytucja publiczna"
+    },
+    {
+      "id": "U-PRM",
+      "nazwa": "Lotnicze Pogotowie Ratunkowe",
+      "id_jednostki_nadrzednej": "U-MZ",
+      "id_planow": [
+        "RL"
+      ],
+      "budzet": 4000000,
+      "zasoby": {
+        "personel": 80,
+        "smiglowce": 22
+      },
+      "id_regionu": null,
+      "typ": "ratownictwo medyczne"
+    },
+    {
+      "id": "U-MI",
+      "nazwa": "Ministerstwo Infrastruktury",
+      "id_jednostki_nadrzednej": "U-PRM",
+      "id_planow": [
+        "S"
+      ],
+      "budzet": 7000000,
+      "zasoby": {
+        "personel": 100,
+        "pojazdy": 10
+      },
+      "id_regionu": null,
+      "typ": "ministerstwo"
+    },
+    {
+      "id": "U-GDDKIA",
+      "nazwa": "Generalna Dyrekcja Dróg Krajowych i Autostrad",
+      "id_jednostki_nadrzednej": "U-MI",
+      "id_planow": [
+        "SD"
+      ],
+      "budzet": 6000000,
+      "zasoby": {
+        "personel": 300,
+        "pojazdy": 40
+      },
+      "id_regionu": null,
+      "typ": "administracja centralna"
+    },
+    {
+      "id": "U-PLK",
+      "nazwa": "PKP Polskie Linie Kolejowe S.A.",
+      "id_jednostki_nadrzednej": "U-MI",
+      "id_planow": [
+        "SK"
+      ],
+      "budzet": 10000000,
+      "zasoby": {
+        "personel": 500,
+        "pojazdy": 50
+      },
+      "id_regionu": null,
+      "typ": "operator infrastruktury"
+    },
+    {
+      "id": "U-MARSZ-MZ",
+      "nazwa": "Urząd Marszałkowski Województwa Mazowieckiego",
+      "id_jednostki_nadrzednej": null,
+      "id_planow": [
+        "T"
+      ],
+      "budzet": 3500000,
+      "zasoby": {
+        "personel": 300,
+        "pojazdy": 20
+      },
+      "id_regionu": "PL-MZ",
+      "typ": "samorząd województwa"
+    },
+    {
+      "id": "U-ZDW-MZ",
+      "nazwa": "Mazowiecki Zarząd Dróg Wojewódzkich",
+      "id_jednostki_nadrzednej": "U-MARSZ-MZ",
+      "id_planow": [
+        "TD"
+      ],
+      "budzet": 2000000,
+      "zasoby": {
+        "personel": 150,
+        "pojazdy": 30
+      },
+      "id_regionu": "PL-MZ",
+      "typ": "samorządowa jednostka organizacyjna"
+    }
+  ],
+  "tasks": [
+    {
+      "id_planu": "OR",
+      "id_zadania": "PRZ-001",
+      "id_jednostek": [],
+      "nazwa_zadania": "Aktualizacja wykazu podmiotów realizujących zadania planistyczne",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-02",
+      "status": false,
+      "poziom_realizacji": 0.56,
+      "koszt": 1301768,
+      "zasoby": {
+        "personel": 66,
+        "pojazdy": 6
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "ORP",
+      "id_zadania": "PRZ-002",
+      "id_jednostek": [
+        "U-KGP"
+      ],
+      "nazwa_zadania": "Weryfikacja zakresów odpowiedzialności poszczególnych podmiotów",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-03",
+      "status": false,
+      "poziom_realizacji": 0.45,
+      "koszt": 2312319,
+      "zasoby": {
+        "personel": 69,
+        "pojazdy": 0
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "ORS",
+      "id_zadania": "PRZ-003",
+      "id_jednostek": [
+        "U-KGPSP"
+      ],
+      "nazwa_zadania": "Aktualizacja procedur zapewnienia ciągłości działania jednostki",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-02",
+      "status": false,
+      "poziom_realizacji": 0.54,
+      "koszt": 1572451,
+      "zasoby": {
+        "personel": 41,
+        "pojazdy": 7
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "ORPP",
+      "id_zadania": "PRZ-004",
+      "id_jednostek": [
+        "U-KWP-MZ"
+      ],
+      "nazwa_zadania": "Weryfikacja obsady kluczowych stanowisk w strukturach organizacyjnych",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-02",
+      "status": false,
+      "poziom_realizacji": 0.34,
+      "koszt": 409256,
+      "zasoby": {
+        "personel": 64,
+        "pojazdy": 2
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "ORSS",
+      "id_zadania": "PRZ-005",
+      "id_jednostek": [
+        "U-KWPSP-MZ"
+      ],
+      "nazwa_zadania": "Przygotowanie procedury zastępstwa osób funkcyjnych",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-08",
+      "status": false,
+      "poziom_realizacji": 0.25,
+      "koszt": 2356043,
+      "zasoby": {
+        "personel": 23,
+        "pojazdy": 8
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "ORPPP",
+      "id_zadania": "PRZ-006",
+      "id_jednostek": [
+        "U-KPP-RAD"
+      ],
+      "nazwa_zadania": "Inwentaryzacja kluczowych źródeł zasilania",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-09",
+      "status": true,
+      "poziom_realizacji": 0.92,
+      "koszt": 893688,
+      "zasoby": {
+        "personel": 41,
+        "pojazdy": 12
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "ORSSS",
+      "id_zadania": "PRZ-007",
+      "id_jednostek": [
+        "U-KPPSP-RAD"
+      ],
+      "nazwa_zadania": "Identyfikacja obiektów wymagających priorytetowego zabezpieczenia energetycznego",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-09",
+      "status": false,
+      "poziom_realizacji": 0.5,
+      "koszt": 1943670,
+      "zasoby": {
+        "personel": 17,
+        "pojazdy": 7
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "OK",
+      "id_zadania": "PRZ-008",
+      "id_jednostek": [],
+      "nazwa_zadania": "Weryfikacja dostępności źródeł zasilania rezerwowego",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-01",
+      "status": false,
+      "poziom_realizacji": 0.2,
+      "koszt": 2373315,
+      "zasoby": {
+        "personel": 31,
+        "pojazdy": 7
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "OW",
+      "id_zadania": "PRZ-009",
+      "id_jednostek": [],
+      "nazwa_zadania": "Aktualizacja wykazu podmiotów odpowiedzialnych za utrzymanie ciągłości dostaw energii",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-01",
+      "status": false,
+      "poziom_realizacji": 0.21,
+      "koszt": 1010251,
+      "zasoby": {
+        "personel": 10,
+        "pojazdy": 1
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "PP",
+      "id_zadania": "PRZ-010",
+      "id_jednostek": [
+        "U-KGP"
+      ],
+      "nazwa_zadania": "Opracowanie wariantów ograniczenia skutków przerw w dostawach energii",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-04",
+      "status": false,
+      "poziom_realizacji": 0.21,
+      "koszt": 1218018,
+      "zasoby": {
+        "personel": 64,
+        "pojazdy": 6
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "SK",
+      "id_zadania": "PRZ-011",
+      "id_jednostek": [],
+      "nazwa_zadania": "Aktualizacja wykazu kluczowych węzłów transportowych",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-08",
+      "status": false,
+      "poziom_realizacji": 0.26,
+      "koszt": 1069204,
+      "zasoby": {
+        "personel": 62,
+        "pojazdy": 13
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "TD",
+      "id_zadania": "PRZ-012",
+      "id_jednostek": [],
+      "nazwa_zadania": "Identyfikacja alternatywnych ciągów transportowych",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-07",
+      "status": false,
+      "poziom_realizacji": 0.23,
+      "koszt": 1536031,
+      "zasoby": {
+        "personel": 56,
+        "pojazdy": 13
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SD",
+      "id_zadania": "PRZ-013",
+      "id_jednostek": [],
+      "nazwa_zadania": "Weryfikacja dostępności środków transportu dla zadań planistycznych",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-01",
+      "status": false,
+      "poziom_realizacji": 0.84,
+      "koszt": 462794,
+      "zasoby": {
+        "personel": 9,
+        "pojazdy": 12
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SK",
+      "id_zadania": "PRZ-014",
+      "id_jednostek": [],
+      "nazwa_zadania": "Przygotowanie wykazu podmiotów świadczących usługi transportowe",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-02",
+      "status": false,
+      "poziom_realizacji": 0.42,
+      "koszt": 1092940,
+      "zasoby": {
+        "personel": 26,
+        "pojazdy": 6
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "TD",
+      "id_zadania": "PRZ-015",
+      "id_jednostek": [],
+      "nazwa_zadania": "Opracowanie wariantów zapewnienia ciągłości transportu",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-07",
+      "status": false,
+      "poziom_realizacji": 0.51,
+      "koszt": 819604,
+      "zasoby": {
+        "personel": 37,
+        "pojazdy": 14
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "RN",
+      "id_zadania": "PRZ-016",
+      "id_jednostek": [],
+      "nazwa_zadania": "Inwentaryzacja systemów łączności wykorzystywanych przez podmioty",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-02",
+      "status": true,
+      "poziom_realizacji": 0.85,
+      "koszt": 1908625,
+      "zasoby": {
+        "personel": 72,
+        "pojazdy": 3
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "RL",
+      "id_zadania": "PRZ-017",
+      "id_jednostek": [],
+      "nazwa_zadania": "Weryfikacja dostępności alternatywnych kanałów komunikacji",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-09",
+      "status": false,
+      "poziom_realizacji": 0.67,
+      "koszt": 111898,
+      "zasoby": {
+        "personel": 13,
+        "pojazdy": 7
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SD",
+      "id_zadania": "PRZ-018",
+      "id_jednostek": [],
+      "nazwa_zadania": "Aktualizacja wykazu systemów teleinformatycznych istotnych dla ciągłości działania",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-08",
+      "status": false,
+      "poziom_realizacji": 0.48,
+      "koszt": 946521,
+      "zasoby": {
+        "personel": 53,
+        "pojazdy": 1
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SK",
+      "id_zadania": "PRZ-019",
+      "id_jednostek": [],
+      "nazwa_zadania": "Weryfikacja procedur awaryjnego przekazywania informacji",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-07",
+      "status": false,
+      "poziom_realizacji": 0.45,
+      "koszt": 1162342,
+      "zasoby": {
+        "personel": 60,
+        "pojazdy": 9
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "TD",
+      "id_zadania": "PRZ-020",
+      "id_jednostek": [],
+      "nazwa_zadania": "Przygotowanie testu odporności systemów komunikacyjnych",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-09",
+      "status": false,
+      "poziom_realizacji": 0.71,
+      "koszt": 2091247,
+      "zasoby": {
+        "personel": 21,
+        "pojazdy": 6
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "OR",
+      "id_zadania": "PRZ-021",
+      "id_jednostek": [],
+      "nazwa_zadania": "Aktualizacja wykazu podmiotów leczniczych uczestniczących w działaniach kryzysowych",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-01",
+      "status": false,
+      "poziom_realizacji": 0.32,
+      "koszt": 2479258,
+      "zasoby": {
+        "personel": 71,
+        "pojazdy": 1
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "RL",
+      "id_zadania": "PRZ-022",
+      "id_jednostek": [],
+      "nazwa_zadania": "Weryfikacja dostępności łóżek i podstawowych zasobów medycznych",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-01",
+      "status": false,
+      "poziom_realizacji": 0.4,
+      "koszt": 2049795,
+      "zasoby": {
+        "personel": 66,
+        "pojazdy": 5
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "ORS",
+      "id_zadania": "PRZ-023",
+      "id_jednostek": [
+        "U-KGPSP"
+      ],
+      "nazwa_zadania": "Określenie potrzeb kadrowych w sytuacjach zwiększonego obciążenia systemu",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-02",
+      "status": true,
+      "poziom_realizacji": 0.92,
+      "koszt": 829406,
+      "zasoby": {
+        "personel": 10,
+        "pojazdy": 2
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "RL",
+      "id_zadania": "PRZ-024",
+      "id_jednostek": [],
+      "nazwa_zadania": "Aktualizacja procedur współpracy pomiędzy podmiotami medycznymi",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-07",
+      "status": false,
+      "poziom_realizacji": 0.84,
+      "koszt": 552840,
+      "zasoby": {
+        "personel": 74,
+        "pojazdy": 7
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "RN",
+      "id_zadania": "PRZ-025",
+      "id_jednostek": [],
+      "nazwa_zadania": "Przygotowanie wariantów zwiększenia potencjału medycznego",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-02",
+      "status": false,
+      "poziom_realizacji": 0.63,
+      "koszt": 1808356,
+      "zasoby": {
+        "personel": 76,
+        "pojazdy": 10
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SK",
+      "id_zadania": "PRZ-026",
+      "id_jednostek": [],
+      "nazwa_zadania": "Inwentaryzacja obiektów infrastruktury krytycznej",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-06",
+      "status": false,
+      "poziom_realizacji": 0.31,
+      "koszt": 1051121,
+      "zasoby": {
+        "personel": 35,
+        "pojazdy": 12
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "ORSSS",
+      "id_zadania": "PRZ-027",
+      "id_jednostek": [
+        "U-KPPSP-RAD"
+      ],
+      "nazwa_zadania": "Klasyfikacja obiektów według znaczenia dla ciągłości funkcjonowania",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-05",
+      "status": false,
+      "poziom_realizacji": 0.69,
+      "koszt": 1967738,
+      "zasoby": {
+        "personel": 42,
+        "pojazdy": 2
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "SD",
+      "id_zadania": "PRZ-028",
+      "id_jednostek": [],
+      "nazwa_zadania": "Identyfikacja zależności pomiędzy elementami infrastruktury",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-02",
+      "status": false,
+      "poziom_realizacji": 0.52,
+      "koszt": 357277,
+      "zasoby": {
+        "personel": 70,
+        "pojazdy": 6
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SK",
+      "id_zadania": "PRZ-029",
+      "id_jednostek": [],
+      "nazwa_zadania": "Aktualizacja wykazu operatorów infrastruktury",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-06",
+      "status": false,
+      "poziom_realizacji": 0.36,
+      "koszt": 338531,
+      "zasoby": {
+        "personel": 33,
+        "pojazdy": 11
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "PP",
+      "id_zadania": "PRZ-030",
+      "id_jednostek": [
+        "U-KGP"
+      ],
+      "nazwa_zadania": "Weryfikacja planów ciągłości działania operatorów",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-09",
+      "status": false,
+      "poziom_realizacji": 0.28,
+      "koszt": 1318848,
+      "zasoby": {
+        "personel": 80,
+        "pojazdy": 0
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "PS",
+      "id_zadania": "PRZ-031",
+      "id_jednostek": [
+        "U-KGPSP"
+      ],
+      "nazwa_zadania": "Określenie potrzeb finansowych dla zadań planistycznych",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-05",
+      "status": false,
+      "poziom_realizacji": 0.8,
+      "koszt": 484473,
+      "zasoby": {
+        "personel": 19,
+        "pojazdy": 8
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "PPP",
+      "id_zadania": "PRZ-032",
+      "id_jednostek": [
+        "U-KWP-MZ"
+      ],
+      "nazwa_zadania": "Aktualizacja źródeł finansowania poszczególnych zadań",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-09",
+      "status": true,
+      "poziom_realizacji": 0.86,
+      "koszt": 701995,
+      "zasoby": {
+        "personel": 36,
+        "pojazdy": 9
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "PSS",
+      "id_zadania": "PRZ-033",
+      "id_jednostek": [
+        "U-KWPSP-MZ"
+      ],
+      "nazwa_zadania": "Przygotowanie wariantów finansowania działań w sytuacji kryzysowej",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-06",
+      "status": false,
+      "poziom_realizacji": 0.32,
+      "koszt": 903949,
+      "zasoby": {
+        "personel": 35,
+        "pojazdy": 15
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "PPPP",
+      "id_zadania": "PRZ-034",
+      "id_jednostek": [
+        "U-KPP-RAD"
+      ],
+      "nazwa_zadania": "Określenie rezerw finansowych dostępnych dla działań nadzwyczajnych",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-01",
+      "status": true,
+      "poziom_realizacji": 0.87,
+      "koszt": 437127,
+      "zasoby": {
+        "personel": 56,
+        "pojazdy": 8
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "PSSS",
+      "id_zadania": "PRZ-035",
+      "id_jednostek": [
+        "U-KPPSP-RAD"
+      ],
+      "nazwa_zadania": "Przygotowanie mechanizmu monitorowania wykorzystania środków",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-03",
+      "status": false,
+      "poziom_realizacji": 0.15,
+      "koszt": 1148720,
+      "zasoby": {
+        "personel": 22,
+        "pojazdy": 14
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "RN",
+      "id_zadania": "PRZ-036",
+      "id_jednostek": [],
+      "nazwa_zadania": "Aktualizacja wykazu personelu realizującego zadania krytyczne",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-09",
+      "status": false,
+      "poziom_realizacji": 0.71,
+      "koszt": 90557,
+      "zasoby": {
+        "personel": 16,
+        "pojazdy": 2
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "RL",
+      "id_zadania": "PRZ-037",
+      "id_jednostek": [],
+      "nazwa_zadania": "Identyfikacja kompetencji niezbędnych do realizacji zadań",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-09",
+      "status": true,
+      "poziom_realizacji": 0.87,
+      "koszt": 201112,
+      "zasoby": {
+        "personel": 49,
+        "pojazdy": 4
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SD",
+      "id_zadania": "PRZ-038",
+      "id_jednostek": [],
+      "nazwa_zadania": "Analiza luk kompetencyjnych",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-05",
+      "status": false,
+      "poziom_realizacji": 0.25,
+      "koszt": 1579459,
+      "zasoby": {
+        "personel": 7,
+        "pojazdy": 11
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SK",
+      "id_zadania": "PRZ-039",
+      "id_jednostek": [],
+      "nazwa_zadania": "Przygotowanie planu szkoleń dla personelu kluczowego",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-02",
+      "status": false,
+      "poziom_realizacji": 0.7,
+      "koszt": 1533435,
+      "zasoby": {
+        "personel": 73,
+        "pojazdy": 13
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "TD",
+      "id_zadania": "PRZ-040",
+      "id_jednostek": [],
+      "nazwa_zadania": "Weryfikacja systemu zastępstw personelu",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-04",
+      "status": false,
+      "poziom_realizacji": 0.75,
+      "koszt": 731581,
+      "zasoby": {
+        "personel": 24,
+        "pojazdy": 13
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "OR",
+      "id_zadania": "PRZ-041",
+      "id_jednostek": [],
+      "nazwa_zadania": "Aktualizacja procedur uruchamiania struktur reagowania kryzysowego",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-06",
+      "status": false,
+      "poziom_realizacji": 0.29,
+      "koszt": 1776850,
+      "zasoby": {
+        "personel": 33,
+        "pojazdy": 8
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "ORP",
+      "id_zadania": "PRZ-042",
+      "id_jednostek": [
+        "U-KGP"
+      ],
+      "nazwa_zadania": "Weryfikacja kanałów raportowania sytuacyjnego",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-02",
+      "status": false,
+      "poziom_realizacji": 0.78,
+      "koszt": 1654496,
+      "zasoby": {
+        "personel": 6,
+        "pojazdy": 15
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "ORS",
+      "id_zadania": "PRZ-043",
+      "id_jednostek": [
+        "U-KGPSP"
+      ],
+      "nazwa_zadania": "Przygotowanie katalogu scenariuszy zagrożeń",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-08",
+      "status": false,
+      "poziom_realizacji": 0.31,
+      "koszt": 1516573,
+      "zasoby": {
+        "personel": 41,
+        "pojazdy": 7
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "ORPP",
+      "id_zadania": "PRZ-044",
+      "id_jednostek": [
+        "U-KWP-MZ"
+      ],
+      "nazwa_zadania": "Opracowanie wskaźników gotowości podmiotów",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-04",
+      "status": false,
+      "poziom_realizacji": 0.17,
+      "koszt": 1721287,
+      "zasoby": {
+        "personel": 44,
+        "pojazdy": 8
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "ORSS",
+      "id_zadania": "PRZ-045",
+      "id_jednostek": [
+        "U-KWPSP-MZ"
+      ],
+      "nazwa_zadania": "Przygotowanie harmonogramu ćwiczeń międzyinstytucjonalnych",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-05",
+      "status": true,
+      "poziom_realizacji": 0.92,
+      "koszt": 1522813,
+      "zasoby": {
+        "personel": 67,
+        "pojazdy": 12
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "OK",
+      "id_zadania": "PRZ-046",
+      "id_jednostek": [],
+      "nazwa_zadania": "Aktualizacja warstw administracyjnych systemu GIS",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-09",
+      "status": true,
+      "poziom_realizacji": 0.93,
+      "koszt": 1438943,
+      "zasoby": {
+        "personel": 5,
+        "pojazdy": 3
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "ORSSS",
+      "id_zadania": "PRZ-047",
+      "id_jednostek": [
+        "U-KPPSP-RAD"
+      ],
+      "nazwa_zadania": "Inwentaryzacja kluczowych obiektów na mapie cyfrowej",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-05",
+      "status": false,
+      "poziom_realizacji": 0.29,
+      "koszt": 210462,
+      "zasoby": {
+        "personel": 15,
+        "pojazdy": 13
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "TD",
+      "id_zadania": "PRZ-048",
+      "id_jednostek": [],
+      "nazwa_zadania": "Powiązanie obiektów infrastruktury z odpowiedzialnymi podmiotami",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-06",
+      "status": false,
+      "poziom_realizacji": 0.73,
+      "koszt": 1880368,
+      "zasoby": {
+        "personel": 79,
+        "pojazdy": 3
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "OW",
+      "id_zadania": "PRZ-049",
+      "id_jednostek": [],
+      "nazwa_zadania": "Przygotowanie warstw mapowych do monitorowania realizacji zadań",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-04",
+      "status": true,
+      "poziom_realizacji": 0.87,
+      "koszt": 1118383,
+      "zasoby": {
+        "personel": 7,
+        "pojazdy": 13
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "PP",
+      "id_zadania": "PRZ-050",
+      "id_jednostek": [
+        "U-KGP"
+      ],
+      "nazwa_zadania": "Weryfikacja aktualności danych przestrzennych",
+      "data_utworzenia": "2026-09-15",
+      "data_aktualizacji": "2026-10-09",
+      "status": false,
+      "poziom_realizacji": 0.57,
+      "koszt": 876425,
+      "zasoby": {
+        "personel": 48,
+        "pojazdy": 13
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "PS",
+      "id_zadania": "REAL-001",
+      "id_jednostek": [
+        "U-KGPSP"
+      ],
+      "nazwa_zadania": "Uruchomienie procedury zapewnienia ciągłości działania jednostki",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-06",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2693703,
+      "zasoby": {
+        "personel": 43,
+        "pojazdy": 3
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "PPP",
+      "id_zadania": "REAL-002",
+      "id_jednostek": [
+        "U-KWP-MZ"
+      ],
+      "nazwa_zadania": "Przekazanie bieżącego raportu realizacji zadań",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-07",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 1448110,
+      "zasoby": {
+        "personel": 54,
+        "pojazdy": 9
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "PSS",
+      "id_zadania": "REAL-003",
+      "id_jednostek": [
+        "U-KWPSP-MZ"
+      ],
+      "nazwa_zadania": "Uruchomienie procedury zastępstwa osób funkcyjnych",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-07",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2920877,
+      "zasoby": {
+        "personel": 98,
+        "pojazdy": 5
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "PPPP",
+      "id_zadania": "REAL-004",
+      "id_jednostek": [
+        "U-KPP-RAD"
+      ],
+      "nazwa_zadania": "Zapewnienie funkcjonowania kluczowych stanowisk",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-01",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 1354543,
+      "zasoby": {
+        "personel": 39,
+        "pojazdy": 6
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "PSSS",
+      "id_zadania": "REAL-005",
+      "id_jednostek": [
+        "U-KPPSP-RAD"
+      ],
+      "nazwa_zadania": "Aktualizacja statusu realizacji zadań przez jednostki podległe",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-06",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2030301,
+      "zasoby": {
+        "personel": 59,
+        "pojazdy": 14
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "RN",
+      "id_zadania": "REAL-006",
+      "id_jednostek": [],
+      "nazwa_zadania": "Zapewnienie ciągłości dostaw energii dla obiektów priorytetowych",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-03",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2843420,
+      "zasoby": {
+        "personel": 13,
+        "pojazdy": 9
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "RL",
+      "id_zadania": "REAL-007",
+      "id_jednostek": [],
+      "nazwa_zadania": "Uruchomienie rezerwowego źródła zasilania",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-04",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2901909,
+      "zasoby": {
+        "personel": 42,
+        "pojazdy": 7
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SD",
+      "id_zadania": "REAL-008",
+      "id_jednostek": [],
+      "nazwa_zadania": "Monitorowanie dostępności mocy dla obiektów priorytetowych",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-01",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 1106944,
+      "zasoby": {
+        "personel": 63,
+        "pojazdy": 19
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SK",
+      "id_zadania": "REAL-009",
+      "id_jednostek": [],
+      "nazwa_zadania": "Raportowanie przerw i ograniczeń w dostawach energii",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-04",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 3092961,
+      "zasoby": {
+        "personel": 92,
+        "pojazdy": 12
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "TD",
+      "id_zadania": "REAL-010",
+      "id_jednostek": [],
+      "nazwa_zadania": "Koordynacja działań związanych z przywróceniem zasilania",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-03",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2831706,
+      "zasoby": {
+        "personel": 91,
+        "pojazdy": 0
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SD",
+      "id_zadania": "REAL-011",
+      "id_jednostek": [],
+      "nazwa_zadania": "Uruchomienie alternatywnego wariantu organizacji transportu",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-04",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 817722,
+      "zasoby": {
+        "personel": 92,
+        "pojazdy": 16
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SK",
+      "id_zadania": "REAL-012",
+      "id_jednostek": [],
+      "nazwa_zadania": "Zapewnienie transportu dla podmiotów realizujących zadania priorytetowe",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-04",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 589014,
+      "zasoby": {
+        "personel": 61,
+        "pojazdy": 4
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "TD",
+      "id_zadania": "REAL-013",
+      "id_jednostek": [],
+      "nazwa_zadania": "Monitorowanie dostępności kluczowych węzłów transportowych",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-09",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2577508,
+      "zasoby": {
+        "personel": 43,
+        "pojazdy": 14
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SD",
+      "id_zadania": "REAL-014",
+      "id_jednostek": [],
+      "nazwa_zadania": "Przekierowanie strumienia transportowego na trasę alternatywną",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-09",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 1869880,
+      "zasoby": {
+        "personel": 73,
+        "pojazdy": 14
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SK",
+      "id_zadania": "REAL-015",
+      "id_jednostek": [],
+      "nazwa_zadania": "Raportowanie dostępności środków transportu",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-08",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 1967729,
+      "zasoby": {
+        "personel": 36,
+        "pojazdy": 7
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "ORPPP",
+      "id_zadania": "REAL-016",
+      "id_jednostek": [
+        "U-KPP-RAD"
+      ],
+      "nazwa_zadania": "Uruchomienie alternatywnego kanału komunikacji",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-09",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2112547,
+      "zasoby": {
+        "personel": 83,
+        "pojazdy": 7
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "ORSSS",
+      "id_zadania": "REAL-017",
+      "id_jednostek": [
+        "U-KPPSP-RAD"
+      ],
+      "nazwa_zadania": "Zapewnienie ciągłości przekazywania meldunków i raportów",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-05",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 1063537,
+      "zasoby": {
+        "personel": 37,
+        "pojazdy": 10
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "OK",
+      "id_zadania": "REAL-018",
+      "id_jednostek": [],
+      "nazwa_zadania": "Monitorowanie dostępności kluczowych systemów teleinformatycznych",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-02",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 660382,
+      "zasoby": {
+        "personel": 22,
+        "pojazdy": 7
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "OW",
+      "id_zadania": "REAL-019",
+      "id_jednostek": [],
+      "nazwa_zadania": "Przeprowadzenie testu awaryjnego kanału komunikacji",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-04",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 349395,
+      "zasoby": {
+        "personel": 56,
+        "pojazdy": 13
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "PP",
+      "id_zadania": "REAL-020",
+      "id_jednostek": [
+        "U-KGP"
+      ],
+      "nazwa_zadania": "Przywrócenie funkcjonowania niedostępnego systemu komunikacyjnego",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-07",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 341161,
+      "zasoby": {
+        "personel": 29,
+        "pojazdy": 13
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "PS",
+      "id_zadania": "REAL-021",
+      "id_jednostek": [
+        "U-KGPSP"
+      ],
+      "nazwa_zadania": "Zwiększenie gotowości wybranych podmiotów leczniczych",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-01",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 3291136,
+      "zasoby": {
+        "personel": 76,
+        "pojazdy": 12
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "RL",
+      "id_zadania": "REAL-022",
+      "id_jednostek": [],
+      "nazwa_zadania": "Uruchomienie dodatkowych zasobów medycznych",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-06",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 1332472,
+      "zasoby": {
+        "personel": 99,
+        "pojazdy": 12
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "RN",
+      "id_zadania": "REAL-023",
+      "id_jednostek": [],
+      "nazwa_zadania": "Monitorowanie dostępności miejsc dla pacjentów",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-09",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 3434890,
+      "zasoby": {
+        "personel": 80,
+        "pojazdy": 7
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "RL",
+      "id_zadania": "REAL-024",
+      "id_jednostek": [],
+      "nazwa_zadania": "Koordynacja przepływu pacjentów pomiędzy podmiotami",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-07",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2116930,
+      "zasoby": {
+        "personel": 6,
+        "pojazdy": 12
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "RN",
+      "id_zadania": "REAL-025",
+      "id_jednostek": [],
+      "nazwa_zadania": "Raportowanie dostępności personelu medycznego",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-07",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 3117436,
+      "zasoby": {
+        "personel": 24,
+        "pojazdy": 14
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SD",
+      "id_zadania": "REAL-026",
+      "id_jednostek": [],
+      "nazwa_zadania": "Monitorowanie stanu kluczowych obiektów infrastruktury",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-09",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 193105,
+      "zasoby": {
+        "personel": 53,
+        "pojazdy": 18
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "RL",
+      "id_zadania": "REAL-027",
+      "id_jednostek": [],
+      "nazwa_zadania": "Uruchomienie procedury awaryjnego funkcjonowania obiektu",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-02",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2775887,
+      "zasoby": {
+        "personel": 57,
+        "pojazdy": 4
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "TD",
+      "id_zadania": "REAL-028",
+      "id_jednostek": [],
+      "nazwa_zadania": "Koordynacja działań operatorów infrastruktury",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-05",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 1670076,
+      "zasoby": {
+        "personel": 44,
+        "pojazdy": 6
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SD",
+      "id_zadania": "REAL-029",
+      "id_jednostek": [],
+      "nazwa_zadania": "Przywrócenie funkcjonalności uszkodzonego elementu infrastruktury",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-07",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 1247092,
+      "zasoby": {
+        "personel": 99,
+        "pojazdy": 13
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SK",
+      "id_zadania": "REAL-030",
+      "id_jednostek": [],
+      "nazwa_zadania": "Raportowanie dostępności infrastruktury krytycznej",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-08",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 161299,
+      "zasoby": {
+        "personel": 98,
+        "pojazdy": 17
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "OR",
+      "id_zadania": "REAL-031",
+      "id_jednostek": [],
+      "nazwa_zadania": "Uruchomienie zaplanowanych środków finansowych",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-06",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 1020455,
+      "zasoby": {
+        "personel": 86,
+        "pojazdy": 2
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "ORP",
+      "id_zadania": "REAL-032",
+      "id_jednostek": [
+        "U-KGP"
+      ],
+      "nazwa_zadania": "Monitorowanie wykorzystania środków przeznaczonych na realizację zadań",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-01",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 1117181,
+      "zasoby": {
+        "personel": 28,
+        "pojazdy": 0
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "ORS",
+      "id_zadania": "REAL-033",
+      "id_jednostek": [
+        "U-KGPSP"
+      ],
+      "nazwa_zadania": "Aktualizacja prognozy kosztów realizacji zadań",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-03",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2066259,
+      "zasoby": {
+        "personel": 88,
+        "pojazdy": 3
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "ORPP",
+      "id_zadania": "REAL-034",
+      "id_jednostek": [
+        "U-KWP-MZ"
+      ],
+      "nazwa_zadania": "Uruchomienie rezerwy finansowej",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-08",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 3013768,
+      "zasoby": {
+        "personel": 35,
+        "pojazdy": 11
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "ORSS",
+      "id_zadania": "REAL-035",
+      "id_jednostek": [
+        "U-KWPSP-MZ"
+      ],
+      "nazwa_zadania": "Raportowanie wykorzystania środków według zadań",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-02",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 3342295,
+      "zasoby": {
+        "personel": 23,
+        "pojazdy": 9
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "ORPPP",
+      "id_zadania": "REAL-036",
+      "id_jednostek": [
+        "U-KPP-RAD"
+      ],
+      "nazwa_zadania": "Uruchomienie obsady personelu dla zadania priorytetowego",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-05",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2495066,
+      "zasoby": {
+        "personel": 89,
+        "pojazdy": 12
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "ORSSS",
+      "id_zadania": "REAL-037",
+      "id_jednostek": [
+        "U-KPPSP-RAD"
+      ],
+      "nazwa_zadania": "Uzupełnienie braków kadrowych w jednostce",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-04",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 398752,
+      "zasoby": {
+        "personel": 78,
+        "pojazdy": 20
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "OK",
+      "id_zadania": "REAL-038",
+      "id_jednostek": [],
+      "nazwa_zadania": "Uruchomienie systemu zastępstw",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-05",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2949990,
+      "zasoby": {
+        "personel": 79,
+        "pojazdy": 3
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "OW",
+      "id_zadania": "REAL-039",
+      "id_jednostek": [],
+      "nazwa_zadania": "Przeprowadzenie szkolenia personelu w trybie pilnym",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-06",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2314495,
+      "zasoby": {
+        "personel": 57,
+        "pojazdy": 11
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "PP",
+      "id_zadania": "REAL-040",
+      "id_jednostek": [
+        "U-KGP"
+      ],
+      "nazwa_zadania": "Raportowanie dostępności personelu kluczowego",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-06",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 133066,
+      "zasoby": {
+        "personel": 56,
+        "pojazdy": 15
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "PS",
+      "id_zadania": "REAL-041",
+      "id_jednostek": [
+        "U-KGPSP"
+      ],
+      "nazwa_zadania": "Uruchomienie właściwego poziomu reagowania kryzysowego",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-06",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2745837,
+      "zasoby": {
+        "personel": 61,
+        "pojazdy": 4
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "PPP",
+      "id_zadania": "REAL-042",
+      "id_jednostek": [
+        "U-KWP-MZ"
+      ],
+      "nazwa_zadania": "Zwołanie zespołu/struktury koordynującej działania",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-09",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2808216,
+      "zasoby": {
+        "personel": 37,
+        "pojazdy": 19
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "PSS",
+      "id_zadania": "REAL-043",
+      "id_jednostek": [
+        "U-KWPSP-MZ"
+      ],
+      "nazwa_zadania": "Przygotowanie i przekazanie raportu sytuacyjnego",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-08",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 1906931,
+      "zasoby": {
+        "personel": 96,
+        "pojazdy": 18
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "PPPP",
+      "id_zadania": "REAL-044",
+      "id_jednostek": [
+        "U-KPP-RAD"
+      ],
+      "nazwa_zadania": "Aktualizacja obrazu sytuacji na podstawie raportów podmiotów",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-04",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 443490,
+      "zasoby": {
+        "personel": 38,
+        "pojazdy": 14
+      },
+      "klauzula_tajnosci": "tajne"
+    },
+    {
+      "id_planu": "PSSS",
+      "id_zadania": "REAL-045",
+      "id_jednostek": [
+        "U-KPPSP-RAD"
+      ],
+      "nazwa_zadania": "Przeprowadzenie ćwiczenia reagowania na scenariusz zagrożenia",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-07",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 1490949,
+      "zasoby": {
+        "personel": 6,
+        "pojazdy": 15
+      },
+      "klauzula_tajnosci": "zastrzezone"
+    },
+    {
+      "id_planu": "RN",
+      "id_zadania": "REAL-046",
+      "id_jednostek": [],
+      "nazwa_zadania": "Aktualizacja sytuacji na mapie operacyjnej",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-04",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 1568243,
+      "zasoby": {
+        "personel": 36,
+        "pojazdy": 10
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "RL",
+      "id_zadania": "REAL-047",
+      "id_jednostek": [],
+      "nazwa_zadania": "Zobrazowanie statusu realizacji zadań na mapie",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-05",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2411156,
+      "zasoby": {
+        "personel": 4,
+        "pojazdy": 16
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SK",
+      "id_zadania": "REAL-048",
+      "id_jednostek": [],
+      "nazwa_zadania": "Aktualizacja statusu obiektów infrastruktury na mapie",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-07",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 2129244,
+      "zasoby": {
+        "personel": 74,
+        "pojazdy": 7
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "SK",
+      "id_zadania": "REAL-049",
+      "id_jednostek": [],
+      "nazwa_zadania": "Zobrazowanie dostępności zasobów w ujęciu przestrzennym",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-08",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 1959780,
+      "zasoby": {
+        "personel": 5,
+        "pojazdy": 2
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "OK",
+      "id_zadania": "REAL-050",
+      "id_jednostek": [],
+      "nazwa_zadania": "Przygotowanie syntetycznego obrazu sytuacji dla obszaru administracyjnego",
+      "data_utworzenia": "2026-09-20",
+      "data_aktualizacji": "2026-10-04",
+      "status": false,
+      "poziom_realizacji": 0,
+      "koszt": 1364321,
+      "zasoby": {
+        "personel": 87,
+        "pojazdy": 18
+      },
+      "klauzula_tajnosci": "jawne"
+    }
+  ],
+  "infrastructure": [],
+  "dispatches": [
+    {
+      "id": "D-O-OR",
+      "id_planu_zrodlowego": "O",
+      "id_planu_uruchamianego": "OR",
+      "status": "ready"
+    },
+    {
+      "id": "D-O-OK",
+      "id_planu_zrodlowego": "O",
+      "id_planu_uruchamianego": "OK",
+      "status": "ready"
+    },
+    {
+      "id": "D-O-OW",
+      "id_planu_zrodlowego": "O",
+      "id_planu_uruchamianego": "OW",
+      "status": "ready"
+    }
+  ],
+  "people": [
+    {
+      "id_osoby": "demo-premier",
+      "imie": "Donald",
+      "nazwisko": "Tusk",
+      "id_jednostki": "U-PRM",
+      "stanowisko": "Premier RP — konto demonstracyjne, pełny wgląd PoC",
+      "klauzula_tajnosci": "scisle_tajne",
+      "aktywna": true
+    },
+    {
+      "id_osoby": "demo-kgp",
+      "imie": "Jan",
+      "nazwisko": "Kowalski",
+      "id_jednostki": "U-KGP",
+      "stanowisko": "Komendant Główny Policji — postać fikcyjna do demo",
+      "klauzula_tajnosci": "tajne",
+      "aktywna": true
+    },
+    {
+      "id_osoby": "demo-kgpsp",
+      "imie": "Anna",
+      "nazwisko": "Nowak",
+      "id_jednostki": "U-KGPSP",
+      "stanowisko": "Komendant Główny PSP — postać fikcyjna do demo",
+      "klauzula_tajnosci": "zastrzezone",
+      "aktywna": true
+    }
+  ],
+  "wspolpraca": [
+    {
+      "unit_id": "U-KGPSP",
+      "partner_unit_id": "U-KGP",
+      "sharing_level": "aggregate"
+    }
+  ]
+}

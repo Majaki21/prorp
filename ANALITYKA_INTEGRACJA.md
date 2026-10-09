@@ -15,7 +15,7 @@ UI nie łączy się bezpośrednio z usługą analityczną ani z bazą SQLite. Ac
 
 ## Zakres dostępu — istotne ograniczenie
 
-Dane importowane z arkusza Excel nie zawierają mapowania historycznych identyfikatorów zadań na jednostki organizacyjne ani klauzule. Dlatego endpointy agregujące ten globalny zbiór są dostępne tylko w perspektywie krajowej (`demo-premier` / jednostka `U-PRM`). Pozostałe perspektywy zobaczą wyjaśnienie w UI, a Access zwróci HTTP 403, jeśli spróbują ominąć interfejs.
+Historia analityczna jest generowana z odseparowanej kopii danych operacyjnych; wcześniejsze punkty czasu są syntetycznym backfillem. Kopia zachowuje pola zadań, plany i jednostki, ale endpointy historii postępu nadal agregują według identyfikatora planu/typu zadania i nie implementują filtrowania każdej historycznej wartości według jednostki i klauzuli. Dlatego endpointy agregujące ten globalny zbiór są dostępne tylko w perspektywie krajowej (`demo-premier` / jednostka `U-PRM`). Pozostałe perspektywy zobaczą wyjaśnienie w UI, a Access zwróci HTTP 403, jeśli spróbują ominąć interfejs.
 
 To celowe ograniczenie bezpieczeństwa, nie docelowy model autoryzacji analityki. Aby udostępnić analizy innym jednostkom, trzeba uzupełnić dane historyczne o wiarygodne powiązania z zadaniami, planami, jednostkami i klauzulami, a następnie filtrować dane przed agregacją. Samo ukrycie zakładki w UI nie jest kontrolą dostępu.
 
@@ -31,7 +31,7 @@ Analytics History API nie jest publikowane bezpośrednio na hoście. Dostęp do 
 
 ## Interpretacja wyników
 
-- `D` oraz `D+2` są demonstracyjnymi snapshotami z pliku Excel.
+- `D` oraz `D+2` pozostają identyfikatorami zgodności: `D` oznacza stan z 2026-10-07, a `D+2` stan operacyjny z 2026-10-09. Pozostałe snapshoty stanowią syntetyczną historię dzienną przez 180 dni (181 punktów łącznie) dla wszystkich 100 zadań.
 - Wzrost o `4 p.p.` oznacza np. przejście z 20% do 24%.
-- Symulacja jest ekstrapolacją liniową z dwóch snapshotów oddalonych o dwa dni; nie jest zwalidowaną prognozą.
+- Symulacja jest ekstrapolacją liniową z dwóch ostatnich snapshotów; historyczne punkty wstecz są syntetyczne (z okresami stagnacji i skokami) i nie stanowią rzeczywistych pomiarów ani zwalidowanej prognozy.
 - Automatyczny zbiór postępu operacyjnego zapisuje tylko zadania widoczne dla skonfigurowanego `HISTORY_PERSON_ID`. W środowisku demonstracyjnym ustawiono `demo-premier`.
