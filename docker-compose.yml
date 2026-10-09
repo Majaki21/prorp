@@ -36,6 +36,24 @@ services:
     depends_on:
       - access
 
+  analytics-history:
+    build:
+      context: .
+      dockerfile: ./services/analytics_history/Dockerfile
+    container_name: pro-rp-analytics-history
+    environment:
+      ANALYTICS_HISTORY_DB: /data/analytics_history.db
+      ACCESS_SERVICE_URL: http://access:8000
+      # Konto demonstracyjne; sprawdź, czy jego zakres uprawnień obejmuje analizowane zadania.
+      HISTORY_PERSON_ID: demo-U-PRM
+      # Automatyczne zbieranie co 24 h; 0 wyłącza harmonogram.
+      HISTORY_COLLECTION_INTERVAL_SECONDS: "86400"
+    volumes:
+      - analytics-history-data:/data
+    depends_on:
+      - access
+    ports:
+      - "127.0.0.1:8010:8010"
   presentation:
     build:
       context: .
@@ -52,3 +70,4 @@ services:
 
 volumes:
   pro-rp-data:
+  analytics-history-data:

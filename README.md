@@ -146,3 +146,33 @@ Dane statusów, budżetów, zasobów i przypisań są syntetyczne; nie stanowią
 Serwis `access` filtruje plany, zadania, jednostki i stan operacyjny według tożsamości osoby, hierarchii organizacyjnej, jawnie zapisanych relacji współpracy oraz klauzul tajności. Szczegóły endpointów, reguł i ograniczeń demonstracyjnych znajdują się w `services/access/README.md`.
 
 W tej wersji `DEFAULT_PERSON_ID=demo-U-PRM` jest ustawione wyłącznie po to, aby istniejący interfejs demonstracyjny nadal działał bez ekranu logowania. To konto ma klauzulę `jawne`. W innych klientach można przekazać `X-Person-Id`. Przed rzeczywistym wdrożeniem należy zastąpić oba mechanizmy integracją z zaufanym dostawcą tożsamości.
+
+
+## Zintegrowana historia analityczna (dodatek)
+
+Dodano niezależny serwis `analytics-history` pod adresem `http://localhost:8010`.
+Przechowuje historię postępu w osobnym wolumenie `analytics-history-data`; nie zapisuje do operacyjnej bazy `pro-rp-data`.
+
+Po uruchomieniu całego projektu:
+
+```bash
+docker compose up --build
+```
+
+Dokumentacja API: `http://localhost:8010/docs`.
+
+Przydatne endpointy:
+
+- `GET /health`
+- `GET /history/snapshots`
+- `GET /history/summary?snapshot_id=D%2B2`
+- `GET /history/changes?from_snapshot=D&to_snapshot=D%2B2`
+- `GET /history/tasks/PRZ-001`
+- `POST /history/collect`
+- `GET /history/collections`
+- `GET /history/tasks/{task_id}/timeline`
+- `POST /simulations/progress` z JSON `{"base_snapshot_id":"D+2","days_ahead":2}`
+
+**Ważne ograniczenie:** historia z Excela (100 zadań, snapshoty `D` i `D+2`) to demonstracyjny zestaw niezależny od operacyjnej bazy PRO RP. Automatyczne zbieranie przez Access zapisuje tylko zadania widoczne dla `HISTORY_PERSON_ID`; konto `demo-U-PRM` może widzieć jedynie część zadań. Przed interpretacją wyników sprawdź `GET /history/collections` i ustaw konto techniczne o zatwierdzonym, właściwym zakresie uprawnień. Dwa snapshoty nie uzasadniają wiarygodnej prognozy — ekstrapolacja jest wyłącznie demonstracyjna.
+
+Serwis nie jest jeszcze wpięty do interfejsu Streamlit. Korzysta się z niego osobno przez API na porcie 8010.
