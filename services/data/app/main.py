@@ -3,7 +3,8 @@ import os
 import re
 import sqlite3
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
+import random
 from pathlib import Path
 from typing import Any
 from pydantic import BaseModel, Field
@@ -51,6 +52,7 @@ class TaskCreate(BaseModel):
     nazwa_zadania: str = Field(min_length=3, max_length=240)
     typ_zadania: str = "PRZ"
     klauzula_tajnosci: str | None = None
+    termin_realizacji: str | None = Field(default=None, max_length=32)
 
 class PlanRequirementsUpdate(BaseModel):
     wymogi: list[dict[str, Any]]
@@ -131,6 +133,7 @@ def init_db() -> None:
             zasoby_json TEXT NOT NULL DEFAULT '{}',
             klauzula_tajnosci TEXT NOT NULL DEFAULT 'scisle_tajne',
             typ_zadania TEXT NOT NULL DEFAULT 'REAL',
+            termin_realizacji TEXT NULL,
             PRIMARY KEY (id_planu, id_zadania)
         );
         CREATE TABLE IF NOT EXISTS people (
@@ -179,11 +182,43 @@ def init_db() -> None:
             ("units", "pracownicy_json", "TEXT NOT NULL DEFAULT '[]'"),
             ("tasks", "klauzula_tajnosci", "TEXT NOT NULL DEFAULT 'scisle_tajne'"),
             ("tasks", "typ_zadania", "TEXT NOT NULL DEFAULT 'REAL'"),
+            ("tasks", "termin_realizacji", "TEXT NULL"),
             ("unit_cooperation", "sharing_level", "TEXT NOT NULL DEFAULT 'details'"),
         ]:
             existing = {r[1] for r in conn.execute(f"PRAGMA table_info({table})").fetchall()}
             if column not in existing:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+
+        # Backfill missing demo deadlines in persistent databases created before this field existed.
+        # These are illustrative dates only; never overwrite an already populated deadline.
+        missing = conn.execute(
+            "SELECT id_planu,id_zadania FROM tasks "
+            "WHERE termin_realizacji IS NULL OR termin_realizacji='' "
+            "ORDER BY id_planu,id_zadania"
+        ).fetchall()
+        if missing:
+            deadline_rng = random.Random(20261010)
+            keys = [(str(row["id_planu"]), str(row["id_zadania"])) for row in missing]
+            shuffled = keys[:]
+            deadline_rng.shuffle(shuffled)
+            urgent = set(shuffled[:min(12, len(shuffled))])
+            annual = set(shuffled[12:24])
+            past = set(shuffled[24:32])
+            today = date.today()
+            for key in sorted(keys):
+                if key in urgent:
+                    due = today + timedelta(days=deadline_rng.randint(1, 7))
+                elif key in annual:
+                    due = date(today.year + 1, deadline_rng.randint(1, 12), 1) + timedelta(days=deadline_rng.randint(0, 27))
+                elif key in past:
+                    due = today - timedelta(days=deadline_rng.randint(1, 35))
+                else:
+                    due = today + timedelta(days=deadline_rng.randint(12, 75))
+                conn.execute(
+                    "UPDATE tasks SET termin_realizacji=? WHERE id_planu=? AND id_zadania=? "
+                    "AND (termin_realizacji IS NULL OR termin_realizacji='')",
+                    (due.isoformat(), key[0], key[1]),
+                )
 
         count = conn.execute("SELECT COUNT(*) FROM plans").fetchone()[0]
         if count == 0:
@@ -210,12 +245,12 @@ def init_db() -> None:
                     json.dumps(u.get("pracownicy", []), ensure_ascii=False)
                 ))
             for t in seed.get("tasks", []):
-                conn.execute("""INSERT INTO tasks (id_planu,id_zadania,id_jednostek_json,nazwa_zadania,data_utworzenia,data_aktualizacji,status,poziom_realizacji,koszt,zasoby_json,klauzula_tajnosci) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
+                conn.execute("""INSERT INTO tasks (id_planu,id_zadania,id_jednostek_json,nazwa_zadania,data_utworzenia,data_aktualizacji,status,poziom_realizacji,koszt,zasoby_json,klauzula_tajnosci,termin_realizacji) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
                     t["id_planu"], t["id_zadania"], json.dumps(t.get("id_jednostek", []), ensure_ascii=False),
                     t["nazwa_zadania"], t["data_utworzenia"], t["data_aktualizacji"],
                     int(bool(t.get("status", False))), float(t.get("poziom_realizacji", 0)),
                     float(t.get("koszt", 0)), json.dumps(t.get("zasoby", {}), ensure_ascii=False),
-                    t.get("klauzula_tajnosci", "jawne")
+                    t.get("klauzula_tajnosci", "jawne"), t.get("termin_realizacji")
                 ))
             # Optional employee seed; when omitted, create one clearly labelled demo account per unit.
             people_seed = seed.get("people", [])
@@ -256,13 +291,13 @@ def init_db() -> None:
                           'Kancelaria Prezesa Rady Ministrów'))
             # Idempotent demo task for KPRM; also upgrades existing persistent volumes.
             conn.execute("""INSERT OR IGNORE INTO tasks
-                (id_planu,id_zadania,id_jednostek_json,nazwa_zadania,data_utworzenia,data_aktualizacji,status,poziom_realizacji,koszt,zasoby_json,klauzula_tajnosci,typ_zadania)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""", (
+                (id_planu,id_zadania,id_jednostek_json,nazwa_zadania,data_utworzenia,data_aktualizacji,status,poziom_realizacji,koszt,zasoby_json,klauzula_tajnosci,typ_zadania,termin_realizacji)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""", (
                 'O','PRZ-KPRM-001',json.dumps(['U-PRM'], ensure_ascii=False),
                 'Koordynacja międzyresortowego przygotowania do powodzi',
                 '2026-10-10','2026-10-10',0,0.0,250000.0,
                 json.dumps({'personel':8,'stanowiska_dyzurne':1}, ensure_ascii=False),
-                'jawne','PRZ'))
+                'jawne','PRZ','2026-11-20'))
         if kprm_exists:
             # Preserve foreign-key integrity while retiring any legacy demo identity.
             conn.execute("UPDATE people SET id_jednostki='U-PRM', aktywna=0 WHERE id_jednostki='U-KPRM'")
@@ -421,8 +456,8 @@ def create_plan(request: PlanCreate):
             if not name: continue
             typ = "PRZ" if task.get("typ_zadania", "PRZ") == "PRZ" else "REAL"
             progress = 0.0 if typ == "REAL" else float(task.get("poziom_realizacji", 0) or 0)
-            conn.execute("INSERT INTO tasks (id_planu,id_zadania,id_jednostek_json,nazwa_zadania,data_utworzenia,data_aktualizacji,status,poziom_realizacji,koszt,zasoby_json,klauzula_tajnosci,typ_zadania) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-                (request.id_planu, str(task.get("id_zadania") or f"{typ}-{i:03d}"), json.dumps([request.id_jednostki_wlasciciela]), name, now, now, 0, max(0,min(1,progress)), float(task.get("koszt",0) or 0), "{}", request.klauzula_tajnosci, typ))
+            conn.execute("INSERT INTO tasks (id_planu,id_zadania,id_jednostek_json,nazwa_zadania,data_utworzenia,data_aktualizacji,status,poziom_realizacji,koszt,zasoby_json,klauzula_tajnosci,typ_zadania,termin_realizacji) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (request.id_planu, str(task.get("id_zadania") or f"{typ}-{i:03d}"), json.dumps([request.id_jednostki_wlasciciela]), name, now, now, 0, max(0,min(1,progress)), float(task.get("koszt",0) or 0), "{}", request.klauzula_tajnosci, typ, task.get("termin_realizacji")))
         if request.id_planu_nadrzednego:
             parent_row = conn.execute("SELECT wymogi_json FROM plans WHERE id_planu=?", (request.id_planu_nadrzednego,)).fetchone()
             requirements = json.loads(parent_row["wymogi_json"] or "[]") if parent_row else []
@@ -475,8 +510,8 @@ def update_plan(plan_id: str, request: PlanCreate):
                 continue
             typ = "PRZ" if task.get("typ_zadania", "PRZ") == "PRZ" else "REAL"
             progress = 0.0 if typ == "REAL" else float(task.get("poziom_realizacji", 0) or 0)
-            conn.execute("INSERT INTO tasks (id_planu,id_zadania,id_jednostek_json,nazwa_zadania,data_utworzenia,data_aktualizacji,status,poziom_realizacji,koszt,zasoby_json,klauzula_tajnosci,typ_zadania) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-                (plan_id, str(task.get("id_zadania") or f"{typ}-{i:03d}"), json.dumps([request.id_jednostki_wlasciciela]), name, now, now, 0, max(0,min(1,progress)), float(task.get("koszt",0) or 0), "{}", request.klauzula_tajnosci, typ))
+            conn.execute("INSERT INTO tasks (id_planu,id_zadania,id_jednostek_json,nazwa_zadania,data_utworzenia,data_aktualizacji,status,poziom_realizacji,koszt,zasoby_json,klauzula_tajnosci,typ_zadania,termin_realizacji) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (plan_id, str(task.get("id_zadania") or f"{typ}-{i:03d}"), json.dumps([request.id_jednostki_wlasciciela]), name, now, now, 0, max(0,min(1,progress)), float(task.get("koszt",0) or 0), "{}", request.klauzula_tajnosci, typ, task.get("termin_realizacji")))
         # Mark requirements in the parent plan as linked to this child plan.
         parent_id = request.id_planu_nadrzednego
         if parent_id:
@@ -651,8 +686,8 @@ def create_task(plan_id: str, request: TaskCreate):
             task_id = f"{prefix}{max(nums, default=0)+1:03d}"
         if conn.execute("SELECT 1 FROM tasks WHERE id_planu=? AND id_zadania=?", (plan_id, task_id)).fetchone():
             raise HTTPException(409, "Task identifier already exists in this plan")
-        conn.execute("INSERT INTO tasks (id_planu,id_zadania,id_jednostek_json,nazwa_zadania,data_utworzenia,data_aktualizacji,status,poziom_realizacji,koszt,zasoby_json,klauzula_tajnosci,typ_zadania) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-            (plan_id, task_id, json.dumps([owner_id]), name, now, now, 0, 0.0, 0.0, "{}", request.klauzula_tajnosci or plan["klauzula_tajnosci"], typ))
+        conn.execute("INSERT INTO tasks (id_planu,id_zadania,id_jednostek_json,nazwa_zadania,data_utworzenia,data_aktualizacji,status,poziom_realizacji,koszt,zasoby_json,klauzula_tajnosci,typ_zadania,termin_realizacji) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (plan_id, task_id, json.dumps([owner_id]), name, now, now, 0, 0.0, 0.0, "{}", request.klauzula_tajnosci or plan["klauzula_tajnosci"], typ, request.termin_realizacji))
         row = conn.execute("SELECT * FROM tasks WHERE id_planu=? AND id_zadania=?", (plan_id, task_id)).fetchone()
     return task_dict(row)
 

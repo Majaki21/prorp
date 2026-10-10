@@ -33,3 +33,8 @@ Zakładka analiz korzysta wyłącznie z planów, jednostek i zadań zwróconych 
 - W danych demonstracyjnych dodano sztuczne terminy realizacji (część w najbliższym tygodniu, część w przyszłym roku, pozostałe w losowym zakresie, w tym kilka terminów już minionych). Nie są to terminy oficjalne. Nowe zadania bez podanego terminu nadal mogą mieć pustą datę.
 - Jeżeli model źródłowy nie zawiera daty utworzenia, hierarchii podzadań, jawnych przypisań wielojednostkowych lub liczby personelu, nie da się wiarygodnie odtworzyć tych wartości z samego UI. Wskaźniki zależne od brakujących danych są puste albo opatrzone informacją o ograniczeniu.
 - Wartości liczbowe prezentowane w tabelach są zaokrąglane do dwóch miejsc po przecinku.
+
+
+## Terminy realizacji (dane demonstracyjne)
+
+Zadania udostępniają pole `termin_realizacji` w formacie `YYYY-MM-DD`. Daty w plikach seed są syntetyczne i służą do demonstracji widoku „Czas realizacji i ryzyko terminu”; nie są rzeczywistymi terminami operacyjnymi. Migracja bazy dodaje kolumnę w istniejących instalacjach i uzupełnia wyłącznie brakujące daty, nie nadpisując terminów już zapisanych. Nowo tworzone zadania mogą otrzymać termin przez pole `termin_realizacji`.
