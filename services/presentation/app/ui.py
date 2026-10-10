@@ -87,6 +87,37 @@ def main():
         st.info("Sprawdź serwisy presentation, access i data. Interfejs nie omija warstwy dostępowej.")
         return
 
+    # The flood scenario overlays the records returned by Access in this Streamlit
+    # session only. It deliberately reuses the real plan/task IDs so the Plans,
+    # Tasks and operational analytics tabs show the same simulated lifecycle,
+    # without mutating the operational database.
+    sim_elapsed = max(0, min(11, int(st.session_state.get("flood_demo_elapsed_hours", 0) or 0)))
+    sim_flood_arrived = sim_elapsed >= 6
+    scenario_plan_ids = {"OR", "ORS", "ORP", "ORPP", "ORPPP", "ORSS", "ORSSS", "PS", "PSS", "PSSS"}
+    scenario_active_plan_ids = {"O", "OR", "ORS", "ORP", "ORPP", "ORPPP", "ORSS", "ORSSS", "PS", "PSS", "PSSS"} if sim_flood_arrived else set()
+    for plan in plans:
+        pid = str(plan.get("id_planu", ""))
+        if pid == "O" or pid in scenario_plan_ids:
+            plan["status_operacyjny"] = "active" if pid in scenario_active_plan_ids else "prepared"
+    for task in tasks:
+        pid = str(task.get("id_planu", ""))
+        task_id = str(task.get("id_zadania", ""))
+        if pid not in scenario_plan_ids:
+            continue
+        if task_id.startswith("PRZ-"):
+            # Preparations begin at 0% and progress before the flood arrives.
+            progress = min(1.0, max(0.0, (sim_elapsed / 5.0)))
+            task["poziom_realizacji"] = progress
+            task["status"] = progress >= 1.0
+        elif task_id.startswith("REAL-"):
+            # REAL tasks remain planned until the flood triggers activation.
+            progress = 0.0 if not sim_flood_arrived else min(1.0, (sim_elapsed - 5) / 5.0)
+            task["poziom_realizacji"] = progress
+            task["status"] = progress >= 1.0
+            task["typ_zadania"] = "REAL"
+        if task_id.startswith("PRZ-"):
+            task["typ_zadania"] = "PRZ"
+
     plans_by_id = {str(p.get("id_planu")): p for p in plans}
     units_by_id = {str(u.get("id")): u for u in units}
     owner_by_plan = {str(pid): str(u["id"]) for u in units for pid in u.get("id_planow", [])}
@@ -157,9 +188,113 @@ def main():
     completion = completion_percent(real_tasks)
     attention_tasks = [t for t in visible_scope_tasks if clamp_progress(t) < 1 and (t.get("status") is False or t.get("status") == 0)]
 
-    tab_overview, tab_tasks, tab_plans, tab_map, tab_operational_analytics, tab_analytics, tab_hierarchy = st.tabs(
-        ["Obraz sytuacji", "Zadania", "Plany", "Mapa", "Analizy operacyjne", "Historia i scenariusze", "Hierarchia"]
+    tab_overview, tab_tasks, tab_plans, tab_map, tab_operational_analytics, tab_analytics, tab_hierarchy, tab_simulation = st.tabs(
+        ["Obraz sytuacji", "Zadania", "Plany", "Mapa", "Analizy operacyjne", "Historia i scenariusze", "Hierarchia", "Symulacja"]
     )
+
+    # Demonstration-only scenario: state is held in this Streamlit session and
+    # deliberately does not mutate the operational database or activate real plans.
+    with tab_simulation:
+        st.markdown('<div class="eyebrow">Centrum symulacji · scenariusz demonstracyjny</div>', unsafe_allow_html=True)
+        st.header("🌊 Powódź — przygotowanie i reagowanie")
+        st.caption("Scenariusz pokazowy. Stan symulacji jest odzwierciedlany w zakładkach Plany, Zadania i Analizy operacyjne, ale nie zapisuje zmian w operacyjnej bazie danych.")
+        sim_key = "flood_demo_elapsed_hours"
+        if sim_key not in st.session_state:
+            st.session_state[sim_key] = 0
+        elapsed = int(st.session_state[sim_key])
+        flood_hour = 6
+        remaining = max(0, flood_hour - elapsed)
+        flood_arrived = elapsed >= flood_hour
+        prep_progress = min(100, round(elapsed / flood_hour * 100))
+        real_progress = 0 if not flood_arrived else min(100, (elapsed - flood_hour + 1) * 20)
+        clock_label = (f"T − {remaining:02d}:00" if not flood_arrived else f"T + {elapsed - flood_hour:02d}:00")
+
+        controls = st.columns([1.25, 1, 1, 1.1])
+        with controls[0]:
+            if st.button("▶ Uruchom / +1 godz.", type="primary", use_container_width=True, key="flood-sim-next"):
+                st.session_state[sim_key] = min(11, elapsed + 1)
+                st.rerun()
+        with controls[1]:
+            if st.button("+3 godz.", use_container_width=True, key="flood-sim-fast"):
+                st.session_state[sim_key] = min(11, elapsed + 3)
+                st.rerun()
+        with controls[2]:
+            if st.button("Do nadejścia fali", use_container_width=True, key="flood-sim-arrival"):
+                st.session_state[sim_key] = 6
+                st.rerun()
+        with controls[3]:
+            if st.button("↺ Reset", use_container_width=True, key="flood-sim-reset"):
+                st.session_state[sim_key] = 0
+                st.rerun()
+
+        if flood_arrived:
+            st.error("🌊 FALA POWODZIOWA — zagrożenie aktywne. Uruchomiono działania operacyjne REAL.")
+        else:
+            st.info(f"⏳ Do nadejścia fali powodziowej: {remaining} godz. · trwa faza przygotowań.")
+
+        top = st.columns(3)
+        top[0].metric("Czas symulacji", clock_label)
+        top[1].metric("Gotowość służb", f"{prep_progress}%", "na podstawie zadań PRZ")
+        top[2].metric("Realizacja działań REAL", f"{real_progress}%", "aktywowane po nadejściu fali" if flood_arrived else "plany zaplanowane, jeszcze nieaktywne")
+
+        st.subheader("Oś czasu zagrożenia")
+        timeline_cols = st.columns(3)
+        timeline_cols[0].markdown(("🟢 **Przygotowania**" if elapsed > 0 else "🔵 **Start przygotowań**") + "\n\n<small>T−06:00 do T−00:00</small>", unsafe_allow_html=True)
+        timeline_cols[1].markdown(("🔴 **Powódź — zagrożenie aktywne**" if flood_arrived else "⚪ **Nadejście fali**") + "\n\n<small>T±00:00</small>", unsafe_allow_html=True)
+        timeline_cols[2].markdown(("🟢 **Reagowanie operacyjne**" if real_progress > 0 else "⚪ **Działania REAL**") + "\n\n<small>Po aktywacji planów</small>", unsafe_allow_html=True)
+
+        left_sim, right_sim = st.columns(2)
+        with left_sim:
+            st.subheader("Przygotowanie służb · PRZ")
+            st.progress(prep_progress / 100, text=f"Realizacja zadań przygotowawczych: {prep_progress}%")
+            prep_items = [
+                ("Kontrola sprzętu i zasobów ratowniczych", min(100, max(0, round(elapsed / 3 * 100))),
+                 "Komenda Państwowej Straży Pożarnej"),
+                ("Przygotowanie punktów ewakuacji", min(100, max(0, round((elapsed - 1) / 3 * 100))),
+                 "Administracja wojewódzka"),
+                ("Zabezpieczenie wałów i newralgicznych odcinków", min(100, max(0, round((elapsed - 2) / 3 * 100))),
+                 "Służby terenowe"),
+            ]
+            for label, value, owner in prep_items:
+                with st.container(border=True):
+                    st.markdown(f"**{label}**")
+                    st.caption(owner + " · PRZ")
+                    st.progress(value / 100, text=f"{value}%")
+        with right_sim:
+            st.subheader("Działania operacyjne · REAL")
+            st.progress(real_progress / 100, text=f"Realizacja zadań REAL: {real_progress}%")
+            real_items = [
+                ("Ewakuacja mieszkańców z obszarów zagrożonych", max(0, min(100, real_progress)),
+                 "Administracja lokalna"),
+                ("Uruchomienie punktów pomocy i schronienia", max(0, min(100, real_progress - 10)),
+                 "Zespół zarządzania kryzysowego"),
+                ("Działania ratownicze i logistyczne", max(0, min(100, real_progress - 20)),
+                 "Państwowa Straż Pożarna"),
+            ]
+            for label, value, owner in real_items:
+                with st.container(border=True):
+                    st.markdown(f"**{label}**")
+                    st.caption(owner + (" · REAL · aktywne" if flood_arrived else " · REAL · zaplanowane"))
+                    st.progress(value / 100, text=(f"{value}%" if flood_arrived else "Oczekuje na aktywację"))
+
+        st.subheader("Dziennik zdarzeń symulacji")
+        events = [
+            (0, "T−06:00", "Rozpoczęcie scenariusza powodziowego", "info"),
+            (1, "T−05:00", "Rozpoczęto kontrolę zasobów ratowniczych", "info"),
+            (3, "T−03:00", "Przygotowanie punktów ewakuacji i zabezpieczenie infrastruktury", "info"),
+            (5, "T−01:00", "Ostatnia faza przygotowań przed nadejściem fali", "warning"),
+            (6, "T±00:00", "Nadeszła fala — aktywowano plan krajowy O oraz plany operacyjne PSP (PS/PSS/PSSS)", "critical"),
+            (7, "T+01:00", "Rozwinięcie działań ewakuacyjnych i punktów pomocy", "info"),
+            (9, "T+03:00", "Kontynuacja działań ratowniczych i logistycznych", "info"),
+        ]
+        visible_events = [event for event in events if event[0] <= elapsed]
+        for _, event_time, event_text, severity in reversed(visible_events):
+            icon = "🔴" if severity == "critical" else "🟠" if severity == "warning" else "🟢"
+            st.markdown(f"{icon} **{event_time}** — {event_text}")
+
+        if flood_arrived:
+            st.success("Aktywne w tej sesji: plan krajowy O oraz plany PSP PS, PSS i PSSS. Przełącz konto na komendanta PSP, aby zobaczyć własne plany i zadania REAL po aktywacji.")
+        st.caption("Tryb demonstracyjny: statusy i postęp są nakładką sesji. Reset przywraca stan początkowy; baza operacyjna nie jest modyfikowana.")
 
     with tab_overview:
         st.markdown('<div class="eyebrow">Sytuacja operacyjna</div>', unsafe_allow_html=True)
@@ -818,6 +953,17 @@ def main():
         # Count only terminal tasks in a hierarchy, so parent tasks with children do not double-count.
         analyzed_tasks = leaf_tasks(scope_tasks)
         st.markdown(f"**Zakres:** {scope_label} · **Zadań na najniższym poziomie:** {len(analyzed_tasks)} · **Jednostek:** {len(scope_units)}")
+        if sim_elapsed > 0:
+            if is_national:
+                if sim_flood_arrived:
+                    st.info("**Wniosek dla premiera:** plan krajowy i plany operacyjne zostały aktywowane. Warto monitorować nierozpoczęte zadania REAL w jednostkach podległych i kierować wsparcie tam, gdzie postęp jest najniższy.")
+                else:
+                    st.info("**Wniosek dla premiera:** przed nadejściem fali należy dopilnować terminowego zakończenia przygotowań PRZ oraz wskazać jednostki, które wymagają dodatkowych zasobów.")
+            elif person_id == "demo-kgpsp":
+                if sim_flood_arrived:
+                    st.info("**Wniosek dla komendanta PSP:** plany PSP są aktywne. Priorytetem jest raportowanie postępu zadań REAL, identyfikacja braków zasobowych i przesuwanie sił do zadań o najwyższym ryzyku opóźnienia.")
+                else:
+                    st.info("**Wniosek dla komendanta PSP:** skoncentruj przygotowania na zadaniach PRZ z najniższym postępem i sprawdź gotowość zasobów przed aktywacją działań REAL.")
         if not analyzed_tasks:
             st.info("W zakresie widocznym dla tego konta nie ma zadań do analizy.")
         else:

@@ -196,3 +196,15 @@ Testy w tym środowisku: `pytest -q` (31 testów). W środowisku implementacyjny
 W widoku **Zadania → Szczegóły zadania** uprawniona jednostka może rozwinąć formularz **Złóż raport rzeczywistego wykonania**. Raport zawiera opis wykonanych czynności, postęp po raporcie, przeszkody/ryzyka, potrzebne wsparcie oraz przewidywany termin zakończenia. Raport jest zapisywany w tabeli `task_reports`, a postęp zadania aktualizowany w tej samej transakcji. Historia raportów jest dostępna w szczegółach zadania.
 
 Zapisy raportów przechodzą przez Presentation → Access → Data. Warstwa Access sprawdza widoczność zadania, poziom dostępu, własność zadania i stan planu; identyfikator oraz nazwę autora bierze z uwierzytelnionej tożsamości przekazanej do Access, a nie z pól formularza. Zadania REAL można raportować po aktywacji planu, a PRZ po zatwierdzeniu planu.
+
+## Scenariusz demonstracyjny „Powódź” — widok ról
+
+W zakładce **Symulacja** można przejść przez przygotowania do powodzi i aktywację planów. Stan scenariusza jest nakładką w bieżącej sesji Streamlit, dzięki czemu te same postępy są widoczne w zakładkach **Plany**, **Zadania** i **Analizy operacyjne** po przełączeniu konta demonstracyjnego.
+
+- **Premier RP**: widzi perspektywę krajową i aktywację planu koordynacji krajowej `O`.
+- **Komendant Główny PSP**: widzi własny zakres i aktywację planów PSP `PS`, `PSS`, `PSSS`.
+- Przed nadejściem fali zadania `PRZ-*` przechodzą od 0% do zakończenia, a zadania `REAL-*` pozostają zaplanowane.
+- Po nadejściu fali plany demonstracyjne przechodzą w stan aktywny, a postęp zadań `REAL-*` rośnie wraz z dalszym czasem symulacji.
+- **Reset** przywraca początkowy stan symulacji. Scenariusz nie zapisuje statusów ani postępu do operacyjnej bazy danych.
+
+To celowy tryb demo, a nie trwała aktywacja planów w środowisku operacyjnym.
