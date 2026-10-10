@@ -244,7 +244,7 @@ def init_db() -> None:
         kprm_exists = conn.execute("SELECT 1 FROM units WHERE id='U-KPRM'").fetchone()
         if prm_exists:
             # Synthetic PoC coordination budget; repair legacy databases where it was seeded as 0.
-            conn.execute("UPDATE units SET budzet=50000000 WHERE id='U-PRM' AND COALESCE(budzet, 0)=0")
+            conn.execute("UPDATE units SET nazwa='Kancelaria Prezesa Rady Ministrów', budzet=50000000 WHERE id='U-PRM' AND (nazwa <> 'Kancelaria Prezesa Rady Ministrów' OR COALESCE(budzet, 0)=0)")
             prm_row = conn.execute("SELECT id_planow_json FROM units WHERE id='U-PRM'").fetchone()
             prm_plans = json.loads(prm_row['id_planow_json'] or '[]')
             if 'O' not in prm_plans:
@@ -252,8 +252,17 @@ def init_db() -> None:
             conn.execute("UPDATE units SET id_planow_json=? WHERE id='U-PRM'", (json.dumps(prm_plans, ensure_ascii=False),))
             conn.execute("UPDATE units SET id_planow_json=? WHERE id='U-KPRM'", (json.dumps([], ensure_ascii=False),))
             conn.execute("UPDATE plans SET sporzadzil=?, zatwierdzajacy=? WHERE id_planu='O'",
-                         ('Prezes Rady Ministrów / Rada Ministrów — węzeł koordynacyjny PoC',
-                          'Prezes Rady Ministrów / Rada Ministrów — węzeł koordynacyjny PoC'))
+                         ('Kancelaria Prezesa Rady Ministrów',
+                          'Kancelaria Prezesa Rady Ministrów'))
+            # Idempotent demo task for KPRM; also upgrades existing persistent volumes.
+            conn.execute("""INSERT OR IGNORE INTO tasks
+                (id_planu,id_zadania,id_jednostek_json,nazwa_zadania,data_utworzenia,data_aktualizacji,status,poziom_realizacji,koszt,zasoby_json,klauzula_tajnosci,typ_zadania)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""", (
+                'O','PRZ-KPRM-001',json.dumps(['U-PRM'], ensure_ascii=False),
+                'Koordynacja międzyresortowego przygotowania do powodzi',
+                '2026-10-10','2026-10-10',0,0.0,250000.0,
+                json.dumps({'personel':8,'stanowiska_dyzurne':1}, ensure_ascii=False),
+                'jawne','PRZ'))
         if kprm_exists:
             # Preserve foreign-key integrity while retiring any legacy demo identity.
             conn.execute("UPDATE people SET id_jednostki='U-PRM', aktywna=0 WHERE id_jednostki='U-KPRM'")

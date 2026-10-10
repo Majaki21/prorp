@@ -6,7 +6,7 @@
     "counts": {
       "plans": 25,
       "units": 19,
-      "tasks": 100
+      "tasks": 101
     }
   },
   "plans": [
@@ -14,9 +14,9 @@
       "id_planu": "O",
       "id_planu_nadrzednego": null,
       "nazwa_dokumentu": "Plan O — koordynacja krajowa",
-      "sporzadzil": "Prezes Rady Ministrów / Rada Ministrów — węzeł koordynacyjny PoC",
+      "sporzadzil": "Kancelaria Prezesa Rady Ministrów",
       "uzgadnial": [],
-      "zatwierdzajacy": "Prezes Rady Ministrów / Rada Ministrów — węzeł koordynacyjny PoC",
+      "zatwierdzajacy": "Kancelaria Prezesa Rady Ministrów",
       "komentarz": "DANE DEMONSTRACYJNE — fikcyjny plan PoC; nie jest dokumentem urzędowym.",
       "data_utworzenia": "2026-09-01",
       "data_zatwierdzeina": "2026-09-10",
@@ -339,7 +339,7 @@
   "units": [
     {
       "id": "U-PRM",
-      "nazwa": "Prezes Rady Ministrów / Rada Ministrów — węzeł koordynacyjny PoC",
+      "nazwa": "Kancelaria Prezesa Rady Ministrów",
       "id_jednostki_nadrzednej": null,
       "id_planow": [
         "O"
@@ -2294,6 +2294,24 @@
       "zasoby": {
         "personel": 87,
         "pojazdy": 18
+      },
+      "klauzula_tajnosci": "jawne"
+    },
+    {
+      "id_planu": "O",
+      "id_zadania": "PRZ-KPRM-001",
+      "id_jednostek": [
+        "U-PRM"
+      ],
+      "nazwa_zadania": "Koordynacja międzyresortowego przygotowania do powodzi",
+      "data_utworzenia": "2026-10-10",
+      "data_aktualizacji": "2026-10-10",
+      "status": false,
+      "poziom_realizacji": 0.0,
+      "koszt": 250000,
+      "zasoby": {
+        "personel": 8,
+        "stanowiska_dyzurne": 1
       },
       "klauzula_tajnosci": "jawne"
     }

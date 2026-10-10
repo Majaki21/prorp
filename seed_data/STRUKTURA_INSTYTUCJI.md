@@ -1,7 +1,7 @@
 # Struktura instytucji i planów w PoC
 
 ## Węzeł koordynacyjny (uproszczenie PoC)
-- Prezes Rady Ministrów / Rada Ministrów — węzeł koordynacyjny PoC
+- Kancelaria Prezesa Rady Ministrów
   - Kancelaria Prezesa Rady Ministrów
   - Ministerstwo Spraw Wewnętrznych i Administracji
     - Komenda Główna Policji

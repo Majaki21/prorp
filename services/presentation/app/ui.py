@@ -177,6 +177,12 @@ def main():
             str(pid) for unit in scope_direct_units for pid in unit.get("id_planow", [])
         }
     visible_scope_plans_list = [plans_by_id[pid] for pid in visible_scope_plans if pid in plans_by_id]
+    # In the PM's Plans tab show only plans owned by the PM's coordination unit.
+    # Direct-report execution remains visible in the dedicated overview section.
+    plans_for_plan_tab = visible_scope_plans_list
+    if is_national and selected_scope == own_unit_id:
+        own_plan_ids = {str(pid) for pid in units_by_id.get(own_unit_id, {}).get("id_planow", [])}
+        plans_for_plan_tab = [p for p in visible_scope_plans_list if str(p.get("id_planu")) in own_plan_ids]
     active_plans = [p for p in visible_scope_plans_list if p.get("status_operacyjny") == "active"]
     if is_national and selected_scope == NATIONAL_SCOPE:
         scope_label = "Poziom krajowy · przegląd jednostek bezpośrednio podległych"
@@ -188,8 +194,8 @@ def main():
     completion = completion_percent(real_tasks)
     attention_tasks = [t for t in visible_scope_tasks if clamp_progress(t) < 1 and (t.get("status") is False or t.get("status") == 0)]
 
-    tab_overview, tab_tasks, tab_plans, tab_map, tab_operational_analytics, tab_analytics, tab_hierarchy, tab_simulation = st.tabs(
-        ["Obraz sytuacji", "Zadania", "Plany", "Mapa", "Analizy operacyjne", "Historia i scenariusze", "Hierarchia", "Symulacja"]
+    tab_overview, tab_tasks, tab_plans, tab_map, tab_operational_analytics, tab_hierarchy, tab_simulation = st.tabs(
+        ["Obraz sytuacji", "Zadania", "Plany", "Mapa", "Analizy operacyjne", "Hierarchia", "Symulacja"]
     )
 
     # Demonstration-only scenario: state is held in this Streamlit session and
@@ -521,9 +527,9 @@ def main():
 
         # 1. Plan overview and lifecycle. REAL progress is deliberately hidden until activation.
         with plan_tabs[0]:
-            if not visible_scope_plans_list:
-                st.info("Brak planów w bieżącym zakresie.")
-            for p in sorted(visible_scope_plans_list, key=lambda x: display_plan_name(x).casefold()):
+            if not plans_for_plan_tab:
+                st.info("Brak planów własnych w bieżącym zakresie.")
+            for p in sorted(plans_for_plan_tab, key=lambda x: display_plan_name(x).casefold()):
                 pid = str(p.get("id_planu"))
                 p_tasks = [t for t in tasks if str(t.get("id_planu")) == pid]
                 prep_tasks = [t for t in p_tasks if t.get("typ_zadania") == "PRZ"]
@@ -1047,122 +1053,6 @@ def main():
                 st.write("- Wskaźniki kadrowe i efektywnościowe są heurystykami, a nie oceną jakości pracy jednostek.")
                 st.write("- Wszystkie agregacje wykorzystują tylko dane zwrócone przez API po kontroli dostępu.")
 
-
-    with tab_analytics:
-        st.header("Analityk — historia i scenariusze postępu")
-        st.caption(
-            "Oddzielny moduł analityczny. Żądania przechodzą przez Presentation API i Access; "
-            "dane historyczne pochodzą z demonstracyjnego arkusza Excel, a nie z bieżących zadań operacyjnych."
-        )
-        if not is_national:
-            st.info(
-                "Ten demonstrator analityki historycznej nie zawiera mapowania zadań na jednostki. "
-                "Z tego powodu zagregowane wyniki globalne są dostępne wyłącznie w perspektywie krajowej "
-                "(Premier), aby nie ujawniać danych spoza zakresu jednostki."
-            )
-        else:
-            try:
-                snapshots_payload = get("/api/analytics/history/snapshots", person_id)
-                snapshots = snapshots_payload.get("snapshots", [])
-                if not snapshots:
-                    st.warning("Brak snapshotów historycznych. Sprawdź inicjalizację serwisu analytics-history.")
-                else:
-                    snapshot_ids = [str(x["snapshot_id"]) for x in snapshots]
-                    selected_snapshot = st.selectbox(
-                        "Snapshot do podsumowania", snapshot_ids,
-                        index=snapshot_ids.index("D+2") if "D+2" in snapshot_ids else len(snapshot_ids)-1,
-                        key="analytics_snapshot",
-                    )
-                    summary = get(
-                        f"/api/analytics/history/summary?snapshot_id={quote(selected_snapshot, safe="")}",
-                        person_id,
-                    )
-                    k1, k2, k3, k4 = st.columns(4)
-                    k1.metric("Zadania w próbce", summary.get("tasks", 0))
-                    k2.metric("Średni postęp", f"{float(summary.get('mean_progress', 0))*100:.1f}%")
-                    k3.metric("Zakończone", summary.get("completed_tasks", 0))
-                    k4.metric("Niezakończone", summary.get("incomplete_tasks", 0))
-                    st.caption(summary.get("data_note", "Dane demonstracyjne."))
-
-                    by_type = summary.get("by_type", {})
-                    if by_type:
-                        st.subheader("Postęp według typu zadania")
-                        type_rows = [
-                            {"Typ": typ, "Liczba zadań": val.get("tasks", 0),
-                             "Średni postęp (%)": round(float(val.get("mean_progress", 0))*100, 1),
-                             "Zakończone": val.get("completed_tasks", 0)}
-                            for typ, val in sorted(by_type.items())
-                        ]
-                        st.dataframe(pd.DataFrame(type_rows), use_container_width=True, hide_index=True)
-                        st.bar_chart(pd.DataFrame(type_rows).set_index("Typ")[["Średni postęp (%)"]])
-
-                    st.divider()
-                    st.subheader("Zmiany między snapshotami")
-                    c1, c2 = st.columns(2)
-                    from_snapshot = c1.selectbox("Od", snapshot_ids, index=0, key="analytics_from")
-                    to_snapshot = c2.selectbox(
-                        "Do", snapshot_ids,
-                        index=snapshot_ids.index("D+2") if "D+2" in snapshot_ids else len(snapshot_ids)-1,
-                        key="analytics_to",
-                    )
-                    if from_snapshot == to_snapshot:
-                        st.info("Wybierz dwa różne snapshoty, aby porównać zmianę.")
-                    else:
-                        changes = get(
-                            f"/api/analytics/history/changes?from_snapshot={quote(from_snapshot, safe="")}&to_snapshot={quote(to_snapshot, safe="")}&limit=5000",
-                            person_id,
-                        )
-                        change_rows = changes.get("changes", [])
-                        st.metric("Porównane zadania", changes.get("count", len(change_rows)))
-                        if change_rows:
-                            change_df = pd.DataFrame([{
-                                "ID zadania": x.get("task_id"),
-                                "Typ": x.get("task_type"),
-                                "Postęp przed (%)": round(float(x.get("progress_before", 0))*100, 1),
-                                "Postęp po (%)": round(float(x.get("progress_after", 0))*100, 1),
-                                "Zmiana (p.p.)": x.get("change_pp", 0),
-                                "Zmiana względna (%)": x.get("relative_change_pct"),
-                            } for x in change_rows])
-                            st.dataframe(change_df, use_container_width=True, hide_index=True)
-                        else:
-                            st.info("Brak porównywalnych rekordów.")
-
-                    st.divider()
-                    st.subheader("Scenariusz postępu")
-                    st.warning(
-                        "To ilustracyjna ekstrapolacja liniowa oparta na dwóch snapshotach oddalonych o dwa dni. "
-                        "Nie jest zwalidowaną prognozą i nie powinna służyć jako samodzielna podstawa decyzji."
-                    )
-                    fc1, fc2 = st.columns(2)
-                    base_snapshot = fc1.selectbox(
-                        "Snapshot bazowy", snapshot_ids,
-                        index=snapshot_ids.index("D+2") if "D+2" in snapshot_ids else len(snapshot_ids)-1,
-                        key="analytics_forecast_base",
-                    )
-                    days_ahead = fc2.number_input("Horyzont (dni)", min_value=1, max_value=30, value=2, step=1)
-                    if st.button("Uruchom scenariusz", type="primary", key="run_analytics_forecast"):
-                        result = post(
-                            "/api/analytics/simulations/progress", person_id,
-                            {"base_snapshot_id": base_snapshot, "days_ahead": int(days_ahead)},
-                        )
-                        st.session_state["analytics_last_forecast"] = result
-                    forecast = st.session_state.get("analytics_last_forecast")
-                    if forecast:
-                        st.caption(
-                            f"Metoda: {forecast.get('method')} · liczba wyników: {forecast.get('results_count', 0)}"
-                        )
-                        forecast_rows = [{
-                            "ID zadania": x.get("task_id"), "Typ": x.get("task_type"),
-                            "Postęp bazowy (%)": round(float(x.get("base_progress", 0))*100, 1),
-                            "Postęp scenariusza (%)": round(float(x.get("forecast_progress", 0))*100, 1),
-                            "Zmiana (p.p.)": x.get("forecast_change_pp", 0),
-                        } for x in forecast.get("results", [])]
-                        if forecast_rows:
-                            st.dataframe(pd.DataFrame(forecast_rows), use_container_width=True, hide_index=True)
-                        st.caption(forecast.get("warning", ""))
-            except Exception as exc:
-                st.error(f"Nie udało się wykonać analizy przez warstwę dostępową: {exc}")
-                st.caption("Sprawdź serwisy presentation, access oraz analytics-history.")
 
     with tab_hierarchy:
         st.header("Hierarchia jednostek")

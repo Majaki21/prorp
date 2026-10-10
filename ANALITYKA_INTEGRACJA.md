@@ -1,6 +1,6 @@
 # Integracja analityki PRO RP
 
-Projekt zachowuje nowe UI z `prorp-final-bugs-fixed.zip` oraz pełny moduł analityczny z `prorp_analityka.zip`. Analityka jest dostępna w dwóch osobnych widokach: **Analizy operacyjne** (analiza aktualnych zadań, terminów, obciążenia, efektywności, ryzyk i struktury realizacji) oraz **Historia i scenariusze** (snapshoty, porównania historyczne i scenariusze postępu). Widok **Hierarchia** i pozostałe elementy nowszego UI pozostają zachowane.
+Projekt zachowuje nowe UI z `prorp-final-bugs-fixed.zip` oraz pełny moduł analityczny z `prorp_analityka.zip`. W interfejsie demonstracyjnym pozostawiono widok **Analizy operacyjne** (analiza aktualnych zadań, terminów, obciążenia, efektywności, ryzyk i struktury realizacji). Widok **Historia i scenariusze** został usunięty z nawigacji jako ekran debugowania; usługa historii pozostaje w repozytorium. Widok **Hierarchia** i pozostałe elementy nowszego UI pozostają zachowane.
 
 ## Architektura
 

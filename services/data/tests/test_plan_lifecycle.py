@@ -167,7 +167,7 @@ def test_seed_uses_prime_minister_coordination_node_as_root_plan_owner(tmp_path,
     assert "O" in prm["id_planow"]
     assert not any(unit["id"] == "U-KPRM" for unit in units)
     plan_o = next(plan for plan in client.get("/plans").json() if plan["id_planu"] == "O")
-    assert "Prezes Rady Ministrów / Rada Ministrów" in plan_o["sporzadzil"]
+    assert plan_o["sporzadzil"] == "Kancelaria Prezesa Rady Ministrów"
 
 
 def test_root_plan_can_use_one_letter_code(tmp_path, monkeypatch):
